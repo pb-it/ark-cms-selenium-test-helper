@@ -179,6 +179,19 @@ class TestHelper {
 
         return Promise.resolve();
     }
+
+    async serverEval(cmd) {
+        const response = await this._driver.executeAsyncScript(async function (cmd) {
+            const callback = arguments[arguments.length - 1];
+
+            const ac = app.getController().getApiController();
+            const client = ac.getApiClient();
+            const res = await client.request('POST', '/sys/tools/dev/eval?_format=text', { 'cmd': cmd });
+
+            callback(res);
+        }, cmd);
+        return Promise.resolve(response);
+    }
 }
 
 module.exports = TestHelper;
