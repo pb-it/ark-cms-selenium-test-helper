@@ -1,0 +1,26 @@
+{
+    "name": "@pb-it/ark-cms-selenium-test-helper",
+    "version": "0.1.1-beta",
+    "description": "Helper for running selenium tests on ArkCMS",
+    "main": "index.js",
+    "scripts": {
+        "test": "mocha --bail tests/*.test.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/pb-it/ark-cms-selenium-test-helper.git"
+    },
+    "keywords": [
+        "ark-cms"
+    ],
+    "author": "Patrick Bauer <patrick.bauer@pb-it.at>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/pb-it/ark-cms-selenium-test-helper/issues"
+    },
+    "homepage": "https://github.com/pb-it/ark-cms-selenium-test-helper#readme",
+    "dependencies": {
+        "mocha": "^10.2.0",
+        "selenium-webdriver": "^4.15.0"
+    }
+}

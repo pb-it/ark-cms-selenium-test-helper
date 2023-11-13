@@ -1,0 +1,8 @@
+.*
+_*
+node_modules
+package-lock.json
+
+!.gitignore
+!.gitattributes
+!.npmrc
