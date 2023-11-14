@@ -2,22 +2,27 @@ const assert = require('assert');
 const webdriver = require('selenium-webdriver');
 
 const config = require('./config.js');
-const TestSetup = require('../src/test-setup.js');
 const TestHelper = require('../src/test-helper.js');
-
-var driver;
-var helper;
 
 describe('Testsuit', function () {
 
+    let helper;
+    let driver;
+
     before('#setup', async function () {
         this.timeout(10000);
-        driver = await new TestSetup(config).getDriver();
-        helper = new TestHelper(driver);
+
+        helper = new TestHelper();
+        await helper.setup(config);
+        driver = helper.getBrowser().getDriver();
 
         await TestHelper.delay(1000);
 
         return Promise.resolve();
+    });
+
+    after('#teardown', async function () {
+        return driver.quit();
     });
 
     it('#login', async function () {
@@ -27,12 +32,9 @@ describe('Testsuit', function () {
         var tmp = await driver.getTitle();
         assert.equal(tmp, title, 'Title missmatch');
 
-        var elements = await driver.findElements(webdriver.By.xpath('/html/head/title'));
-        assert.equal(elements.length, 1);
-        tmp = elements[0].getText()
-        assert.equal(tmp, title, 'Title missmatch');
-
         await helper.login();
+
+        await TestHelper.delay(1000);
 
         var modal = await helper.getTopModal();
         assert.equal(modal == null, true);

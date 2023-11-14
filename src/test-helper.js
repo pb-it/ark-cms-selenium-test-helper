@@ -3,22 +3,59 @@ const webdriver = require('selenium-webdriver');
 //const test = require('selenium-webdriver/testing');
 //const remote = require('selenium-webdriver/remote');
 
+const Browser = require('./browser.js');
+const ExtensionController = require('./controller/extension-controller.js');
+
 class TestHelper {
 
     static delay = ms => new Promise(res => setTimeout(res, ms));
 
+    _config;
+    _browser;
     _driver;
+    _extensionController;
 
-    constructor(driver) {
-        this._driver = driver;
+    constructor(browser) {
+        this._browser = browser;
+    }
+
+    async setup(config) {
+        if (config) {
+            this._config = config;
+            this._browser = new Browser(this._config['browser']);
+        }
+        if (this._browser)
+            this._driver = await this._browser.setupDriver();
+        if (this._config['host'])
+            await this._driver.get(this._config['host']);
+        this._extensionController = new ExtensionController(this);
+        return Promise.resolve();
+    }
+
+    getBrowser() {
+        return this._browser;
+    }
+
+    getExtensionController() {
+        return this._extensionController;
     }
 
     async getTopModal() {
         var modal;
-        var elements = await this._driver.findElements(webdriver.By.xpath('/html/body/div[@class="modal"]'));
+        const elements = await this._driver.findElements(webdriver.By.xpath('/html/body/div[@class="modal"]'));
         if (elements && elements.length > 0)
             modal = elements[elements.length - 1];
         return Promise.resolve(modal);
+    }
+
+    async closeModal() {
+        var cross;
+        const elements = await this._driver.findElements(webdriver.By.xpath('/html/body/div[@class="modal"]/div[@class="modal-content"]/span[@class="close"]'));
+        if (elements && elements.length > 0)
+            cross = elements[elements.length - 1];
+        if (cross)
+            await cross.click();
+        return Promise.resolve();
     }
 
     async getForm(element) {
@@ -63,14 +100,15 @@ class TestHelper {
                 input.sendKeys('admin');
             var button = await this.getButton(modal, 'Login');
             if (button)
-                button.click();
+                await button.click();
 
             await TestHelper.delay(1000);
 
             modal = await this.getTopModal();
             if (modal) {
                 button = await this.getButton(modal, 'Skip');
-                button.click();
+                if (button)
+                    await button.click();
             }
         }
         return Promise.resolve();
@@ -89,93 +127,56 @@ class TestHelper {
         return Promise.resolve();
     }
 
-    async addExtension(name, file, bRestartIfRequested) {
-        //this._driver.setFileDetector(new remote.FileDetector());
-
-        await this.login();
-
-        var modal = await this.getTopModal();
-        assert.equal(modal, null);
-
-        // https://copyprogramming.com/howto/selenium-close-file-picker-dialog
-        this._driver.executeScript(function () {
-            HTMLInputElement.prototype.click = function () {
-                if (this.type !== 'file') {
-                    HTMLElement.prototype.click.call(this);
-                }
-                else if (!this.parentNode) {
-                    this.style.display = 'none';
-                    this.ownerDocument.documentElement.appendChild(this);
-                    this.addEventListener('change', () => this.remove());
-                }
-            }
-        });
-
-        var xpath = `//*[@id="sidenav"]/div[contains(@class, 'menu') and contains(@class, 'iconbar')]/div[contains(@class, 'menuitem') and @title="Extensions"]`;
-        var button;
-        button = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
-        button.click();
-
-        await TestHelper.delay(1000);
-
-        xpath = `//*[@id="sidepanel"]/div/div[contains(@class, 'menu')]/div[contains(@class, 'menuitem') and starts-with(text(),"${name}")]`;
-        var tmp = await this._driver.findElements(webdriver.By.xpath(xpath));
-        var bExists = (tmp.length > 0);
-
-        xpath = `//*[@id="sidepanel"]/div/div[contains(@class, 'menu')]/div[contains(@class, 'menuitem') and starts-with(text(),"Add")]`;
-        button = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
-        button.click();
-
-        await TestHelper.delay(1000);
-
-        xpath = `//input[@type="file"]`;
-        var input = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
-        if (input) {
-            input.sendKeys(file);
-
-            var alert;
-            if (bExists) {
-                await this._driver.wait(webdriver.until.alertIsPresent());
-                alert = await this._driver.switchTo().alert();
-                await alert.accept();
-            }
-
-            await this._driver.wait(webdriver.until.alertIsPresent());
-            alert = await this._driver.switchTo().alert();
-            var text = await alert.getText();
-            assert.equal(text.startsWith('Uploaded \'' + name + '\' successfully!'), true);
-            await alert.accept();
-        } else
-            assert.fail("Input not found");
-
-        if (bRestartIfRequested)
-            await this.checkRestartRequest();
-
-        return Promise.resolve();
-    }
-
     async checkRestartRequest() {
-        var response = await this._driver.executeAsyncScript(async () => {
-            var callback = arguments[arguments.length - 1];
-            var res = 1;
-            var bRestart = false;
-            const controller = app.getController();
-            const ac = controller.getApiController();
-            const info = await ac.fetchApiInfo();
-            if (info)
-                bRestart = (info['state'] === 'openRestartRequest');
-            if (bRestart) {
-                await ac.restartApi();
-                await sleep(5000);
-                var bReady = await ac.waitApiReady();
-                if (bReady)
+        const response = await this._driver.executeAsyncScript(async () => {
+            const callback = arguments[arguments.length - 1];
+
+            try {
+                var res = 1;
+                var bRestart = false;
+                const controller = app.getController();
+                const ac = controller.getApiController();
+                const info = await ac.fetchApiInfo();
+                if (info)
+                    bRestart = (info['state'] === 'openRestartRequest');
+                if (bRestart) {
+                    await ac.restartApi();
+                    await sleep(5000);
+                    var bReady = false;
+                    var tmp;
+                    var i = 1;
+                    while (!bReady && i <= 15) {
+                        console.log(i);
+                        if (i > 1)
+                            await sleep(2000);
+                        try {
+                            tmp = await ac.fetchApiInfo();
+                            console.log(tmp);
+                            if (tmp['state'] === 'running')
+                                bReady = true;
+                        } catch (error) {
+                            console.log(error);
+                            if (error instanceof HttpError && error['response'] && (error['response']['status'] == 401 || error['response']['status'] == 403))
+                                bReady = true;
+                        }
+                        i++;
+                    }
+                    /*console.log(bReady);
+                    if (!bReady) {
+                        await sleep(5000);
+                        bReady = await ac.waitApiReady();
+                    }*/
+                    if (bReady)
+                        res = 0;
+                } else
                     res = 0;
-            } else
-                res = 0;
-            callback(res);
+            } catch (error) {
+                console.log(error);
+            } finally {
+                callback(res);
+            }
         });
         assert.equal(response, 0, 'Unexpected System State');
-        await this.reload();
 
         return Promise.resolve();
     }
