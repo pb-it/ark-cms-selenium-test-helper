@@ -1,9 +1,12 @@
-const assert = require('assert');
+//const assert = require('assert');
 const webdriver = require('selenium-webdriver');
 //const test = require('selenium-webdriver/testing');
 //const remote = require('selenium-webdriver/remote');
 
 const Browser = require('./browser.js');
+
+const App = require('./app.js');
+const ApiController = require('./controller/api-controller.js');
 const ExtensionController = require('./controller/extension-controller.js');
 
 class TestHelper {
@@ -13,6 +16,9 @@ class TestHelper {
     _config;
     _browser;
     _driver;
+
+    _app;
+    _apiController;
     _extensionController;
 
     constructor(browser) {
@@ -26,36 +32,32 @@ class TestHelper {
         }
         if (this._browser)
             this._driver = await this._browser.setupDriver();
-        if (this._config['host'])
-            await this._driver.get(this._config['host']);
+
+        this._app = new App(this, this._config['host']);
+        await this._app.load();
+        this._apiController = new ApiController(this);
         this._extensionController = new ExtensionController(this);
         return Promise.resolve();
+    }
+
+    getConfig() {
+        return this._config;
     }
 
     getBrowser() {
         return this._browser;
     }
 
+    getApp() {
+        return this._app;
+    }
+
+    getApiController() {
+        return this._apiController;
+    }
+
     getExtensionController() {
         return this._extensionController;
-    }
-
-    async getTopModal() {
-        var modal;
-        const elements = await this._driver.findElements(webdriver.By.xpath('/html/body/div[@class="modal"]'));
-        if (elements && elements.length > 0)
-            modal = elements[elements.length - 1];
-        return Promise.resolve(modal);
-    }
-
-    async closeModal() {
-        var cross;
-        const elements = await this._driver.findElements(webdriver.By.xpath('/html/body/div[@class="modal"]/div[@class="modal-content"]/span[@class="close"]'));
-        if (elements && elements.length > 0)
-            cross = elements[elements.length - 1];
-        if (cross)
-            await cross.click();
-        return Promise.resolve();
     }
 
     async getForm(element) {
@@ -87,111 +89,6 @@ class TestHelper {
         if (elements && elements.length == 1)
             button = elements[0];
         return Promise.resolve(button);
-    }
-
-    async login() {
-        var modal = await this.getTopModal();
-        if (modal) {
-            var input = modal.findElement(webdriver.By.css('input[id="username"]'));
-            if (input)
-                input.sendKeys('admin');
-            input = modal.findElement(webdriver.By.css('input[id="password"]'));
-            if (input)
-                input.sendKeys('admin');
-            var button = await this.getButton(modal, 'Login');
-            if (button)
-                await button.click();
-
-            await TestHelper.delay(1000);
-
-            modal = await this.getTopModal();
-            if (modal) {
-                button = await this.getButton(modal, 'Skip');
-                if (button)
-                    await button.click();
-            }
-        }
-        return Promise.resolve();
-    }
-
-    async reload() {
-        await this._driver.navigate().refresh();
-        try { // alternative check 'bConfirmOnLeave'
-            var tmp = await this._driver.switchTo().alert();
-            if (tmp)
-                await tmp.accept();
-        } catch (error) {
-            ;
-        }
-        await TestHelper.delay(1000);
-        return Promise.resolve();
-    }
-
-    async checkRestartRequest() {
-        const response = await this._driver.executeAsyncScript(async () => {
-            const callback = arguments[arguments.length - 1];
-
-            try {
-                var res = 1;
-                var bRestart = false;
-                const controller = app.getController();
-                const ac = controller.getApiController();
-                const info = await ac.fetchApiInfo();
-                if (info)
-                    bRestart = (info['state'] === 'openRestartRequest');
-                if (bRestart) {
-                    await ac.restartApi();
-                    await sleep(5000);
-                    var bReady = false;
-                    var tmp;
-                    var i = 1;
-                    while (!bReady && i <= 15) {
-                        console.log(i);
-                        if (i > 1)
-                            await sleep(2000);
-                        try {
-                            tmp = await ac.fetchApiInfo();
-                            console.log(tmp);
-                            if (tmp['state'] === 'running')
-                                bReady = true;
-                        } catch (error) {
-                            console.log(error);
-                            if (error instanceof HttpError && error['response'] && (error['response']['status'] == 401 || error['response']['status'] == 403))
-                                bReady = true;
-                        }
-                        i++;
-                    }
-                    /*console.log(bReady);
-                    if (!bReady) {
-                        await sleep(5000);
-                        bReady = await ac.waitApiReady();
-                    }*/
-                    if (bReady)
-                        res = 0;
-                } else
-                    res = 0;
-            } catch (error) {
-                console.log(error);
-            } finally {
-                callback(res);
-            }
-        });
-        assert.equal(response, 0, 'Unexpected System State');
-
-        return Promise.resolve();
-    }
-
-    async serverEval(cmd) {
-        const response = await this._driver.executeAsyncScript(async function (cmd) {
-            const callback = arguments[arguments.length - 1];
-
-            const ac = app.getController().getApiController();
-            const client = ac.getApiClient();
-            const res = await client.request('POST', '/sys/tools/dev/eval?_format=text', { 'cmd': cmd });
-
-            callback(res);
-        }, cmd);
-        return Promise.resolve(response);
     }
 }
 

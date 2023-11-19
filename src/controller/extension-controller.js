@@ -1,11 +1,14 @@
+//const path = require('path');
+const fs = require('fs');
+
 const assert = require('assert');
 const webdriver = require('selenium-webdriver');
 //const test = require('selenium-webdriver/testing');
 //const remote = require('selenium-webdriver/remote');
 
-class ExtensionController {
+const sleep = require('util').promisify(setTimeout);
 
-    static delay = ms => new Promise(res => setTimeout(res, ms));
+class ExtensionController {
 
     _helper
     _driver;
@@ -16,6 +19,8 @@ class ExtensionController {
     }
 
     async addExtension(name, file, bRestartIfRequested) {
+        assert(fs.existsSync(file), `File '${file}' not found`);
+
         //this._driver.setFileDetector(new remote.FileDetector());
 
         // https://copyprogramming.com/howto/selenium-close-file-picker-dialog
@@ -37,7 +42,7 @@ class ExtensionController {
         button = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
         button.click();
 
-        await ExtensionController.delay(1000);
+        await sleep(1000);
 
         xpath = `//*[@id="sidepanel"]/div/div[contains(@class, 'menu')]/div[contains(@class, 'menuitem') and starts-with(text(),"${name}")]`;
         var tmp = await this._driver.findElements(webdriver.By.xpath(xpath));
@@ -47,7 +52,7 @@ class ExtensionController {
         button = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
         button.click();
 
-        await ExtensionController.delay(1000);
+        await sleep(1000);
 
         xpath = `//input[@type="file"]`;
         var input = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
@@ -69,7 +74,7 @@ class ExtensionController {
         } else
             assert.fail("Input not found");
 
-        await ExtensionController.delay(1000);
+        await sleep(1000);
 
         if (bRestartIfRequested)
             await this._helper.checkRestartRequest();

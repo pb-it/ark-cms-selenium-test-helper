@@ -1,6 +1,8 @@
 //const os = require('os');
 const { Builder, Capabilities } = require('selenium-webdriver');
 
+const sleep = require('util').promisify(setTimeout);
+
 /**
  * https://www.selenium.dev/documentation/webdriver/
  */
@@ -64,6 +66,28 @@ class Browser {
 
     getDriver() {
         return this._driver;
+    }
+
+    async getDownloads() {
+        const handle = await this._driver.getWindowHandle();
+        await this._driver.switchTo().newWindow('tab');
+
+        if (this._config['name'] === 'chrome')
+            await this._driver.get("chrome://downloads/");
+        else
+            assert.fail('Function only available for Chrome browser');
+
+        await sleep(1000);
+
+        const script = function () {
+            return [...document.querySelector('downloads-manager').shadowRoot.querySelector('#mainContainer > iron-list').getElementsByTagName("downloads-item")].map((el) => el.shadowRoot.getElementById("show").getAttribute("title"));
+        };
+        const webElement = await this._driver.executeScript(script);
+
+        await this._driver.close();
+        await this._driver.switchTo().window(handle);
+
+        return Promise.resolve(webElement);
     }
 }
 

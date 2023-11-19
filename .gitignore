@@ -3,6 +3,8 @@ _*
 node_modules
 package-lock.json
 
+tests/config/test-config.js
+
 !.gitignore
 !.gitattributes
 !.npmrc
