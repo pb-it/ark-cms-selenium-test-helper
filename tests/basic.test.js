@@ -70,12 +70,14 @@ describe('Testsuit', function () {
     });
 
     it('#check API', async function () {
-        this.timeout(10000);
+        if (helper.getConfig()['api']) {
+            this.timeout(10000);
 
-        const api = await helper.getApp().getApiUrl(true);
-        console.log(api);
-        assert.equal(api, helper.getConfig()['api'], 'API missmatch');
-
+            const api = await helper.getApp().getApiUrl(true);
+            console.log(api);
+            assert.equal(api, helper.getConfig()['api'], 'API missmatch');
+        } else
+            this.skip();
         return Promise.resolve();
     });
 
@@ -87,7 +89,8 @@ describe('Testsuit', function () {
         const api = await app.getApiUrl(true);
         console.log(api);
         assert.equal(api, null, 'Resetting LocalStorage failed');
-        await app.setApiUrl(helper.getConfig()['api']);
+        if (helper.getConfig()['api'])
+            await app.setApiUrl(helper.getConfig()['api']);
         await app.reload();
         const modal = await app.getTopModal(); // close tutorial modal
         assert.notEqual(modal, null);

@@ -44,6 +44,8 @@ class Browser {
                             options.addArguments('user-data-dir=' + this._config['user-data-dir']);
                         if (this._config['profile-directory'])
                             options.addArguments('profile-directory=' + this._config['profile-directory']);
+                        if (this._config['download.default_directory'])
+                            options.addArguments('download.default_directory=' + this._config['download.default_directory']);
                         this._driver = await new Builder()
                             .forBrowser('chrome')
                             .setChromeOptions(options)

@@ -35,11 +35,11 @@ class Tools {
         const handle = await this._driver.getWindowHandle();
         await this._driver.switchTo().newWindow('tab');
 
-        var api;
-        const config = this._helper.getConfig();
+        var app;
         if (host) {
+            const config = this._helper.getConfig();
             if (host != config['host']) {
-                const app = new App(this._helper, host);
+                app = new App(this._helper, host);
                 await app.load();
 
                 await sleep(1000);
@@ -47,12 +47,10 @@ class Tools {
                 await app.login();
 
                 await sleep(1000);
-
-                api = await app.getApiUrl();
             }
         } else
-            api = config['api'];
-
+            app = this._helper.getApp();
+        const api = await app.getApiUrl();
         await this._driver.get(api + '/sys/tools/db/backup');
 
         const xpath = `/html/body`;
@@ -72,8 +70,8 @@ class Tools {
         const handle = await this._driver.getWindowHandle();
         await this._driver.switchTo().newWindow('tab');
 
-        const config = this._helper.getConfig();
-        await this._driver.get(config['api'] + '/sys/tools/db/restore');
+        const api = await this._helper.getApp().getApiUrl();
+        await this._driver.get(api + '/sys/tools/db/restore');
 
         await sleep(1000);
 

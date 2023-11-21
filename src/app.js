@@ -41,6 +41,16 @@ class App {
         return Promise.resolve();
     }
 
+    async navigate(path) {
+        const response = await this._driver.executeAsyncScript(async (path) => {
+            const callback = arguments[arguments.length - 1];
+            await app.getController().navigate(path);
+            callback('OK');
+        }, path);
+        assert.equal(response, 'OK');
+        return Promise.resolve();
+    }
+
     async getApiUrl(bVerify) {
         if (!this._api || bVerify) {
             const response = await this._driver.executeAsyncScript(async () => {
@@ -56,10 +66,14 @@ class App {
     async setApiUrl(api) {
         const response = await this._driver.executeAsyncScript(async (api) => {
             const callback = arguments[arguments.length - 1];
-            localStorage.setItem('api', api);
+            if (api)
+                localStorage.setItem('api', api);
+            else
+                localStorage.removeItem('api')
             callback('OK');
         }, api);
         assert.equal(response, 'OK');
+        this._api = api;
         return Promise.resolve();
     }
 

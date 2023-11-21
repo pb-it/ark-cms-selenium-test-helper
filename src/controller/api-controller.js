@@ -132,18 +132,14 @@ module.exports = test;`};
         const response = await this._driver.executeAsyncScript(async () => {
             const callback = arguments[arguments.length - 1];
 
-            var res;
-            try {
-                const ac = app.getController().getApiController();
-                await ac.restartApi();
-                await sleep(5000);
+            async function test(ac, retries, delay) {
                 var bReady = false;
                 var tmp;
                 var i = 1;
-                while (!bReady && i <= 15) {
+                while (!bReady && i <= retries) {
                     console.log(i);
                     if (i > 1)
-                        await sleep(2000);
+                        await sleep(delay);
                     try {
                         tmp = await ac.fetchApiInfo();
                         console.log(tmp);
@@ -156,11 +152,23 @@ module.exports = test;`};
                     }
                     i++;
                 }
-                /*console.log(bReady);
+                return Promise.resolve(bReady);
+            }
+
+            var res;
+            try {
+                const ac = app.getController().getApiController();
+                await ac.restartApi();
+                await sleep(5000);
+                var bReady = await test(ac, 5, 3000);
                 if (!bReady) {
-                    await sleep(5000);
-                    bReady = await ac.waitApiReady();
-                }*/
+                    await sleep(2000);
+                    bReady = await test(ac, 5, 2000);
+                    if (!bReady) {
+                        await sleep(1000);
+                        bReady = await test(ac, 5, 1000);
+                    }
+                }
                 if (bReady)
                     res = 'OK';
             } catch (error) {
