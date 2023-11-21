@@ -58,7 +58,7 @@ module.exports = test;`;
         response = await ac.getInfo();
         assert.equal(response['state'], 'openRestartRequest', 'Verifying RestartRequest failed');
 
-        await ac.checkRestartRequest();
+        await ac.processOpenRestartRequest();
 
         var err;
         try {

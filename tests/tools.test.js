@@ -88,7 +88,7 @@ module.exports = test;`;
 
         await ac.clearDatabase();
 
-        await ac.restart();
+        await ac.restart(true);
         await app.reload();
         await TestHelper.delay(1000);
         await app.login();
@@ -97,7 +97,7 @@ module.exports = test;`;
 
         await tools.restoreBackup(file);
 
-        await ac.restart();
+        await ac.restart(true);
         await app.reload();
         await TestHelper.delay(1000);
         await app.login();

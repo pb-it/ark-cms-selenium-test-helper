@@ -22,18 +22,16 @@ class Browser {
                 switch (this._config['name']) {
                     case 'firefox':
                         //driver = new Builder().withCapabilities(Capabilities.firefox()).build();
-
                         const firefox = require('selenium-webdriver/firefox');
                         var options = new firefox.Options();
-                        //options.setBinary(os.homedir() + '/AppData/Local/Mozilla Firefox/firefox.exe');
-                        options.setBinary('/usr/lib/firefox/firefox'); // '/snap/firefox'
+                        if (this._config['binary'])
+                            options.setBinary(this._config['binary']);
                         if (this._config['profile'])
                             options.setProfile(this._config['profile']);
                         this._driver = await new Builder()
                             .forBrowser('firefox')
                             .setFirefoxOptions(options)
                             .build();
-
                         break;
                     case 'chrome':
                     default:

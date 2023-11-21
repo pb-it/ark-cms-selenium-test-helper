@@ -128,63 +128,28 @@ module.exports = test;`};
         return Promise.resolve();
     }
 
-    async restart() {
-        const response = await this._driver.executeAsyncScript(async () => {
+    async restart(bWaitReady) {
+        const response = await this._driver.executeAsyncScript(async (bWaitReady) => {
             const callback = arguments[arguments.length - 1];
-
-            async function test(ac, retries, delay) {
-                var bReady = false;
-                var tmp;
-                var i = 1;
-                while (!bReady && i <= retries) {
-                    console.log(i);
-                    if (i > 1)
-                        await sleep(delay);
-                    try {
-                        tmp = await ac.fetchApiInfo();
-                        console.log(tmp);
-                        if (tmp['state'] === 'running')
-                            bReady = true;
-                    } catch (error) {
-                        console.log(error);
-                        if (error instanceof HttpError && error['response'] && (error['response']['status'] == 401 || error['response']['status'] == 403))
-                            bReady = true;
-                    }
-                    i++;
-                }
-                return Promise.resolve(bReady);
-            }
 
             var res;
             try {
                 const ac = app.getController().getApiController();
-                await ac.restartApi();
-                await sleep(5000);
-                var bReady = await test(ac, 5, 3000);
-                if (!bReady) {
-                    await sleep(2000);
-                    bReady = await test(ac, 5, 2000);
-                    if (!bReady) {
-                        await sleep(1000);
-                        bReady = await test(ac, 5, 1000);
-                    }
-                }
-                if (bReady)
-                    res = 'OK';
+                res = await ac.restartApi(bWaitReady);
             } catch (error) {
                 console.log(error);
             } finally {
                 callback(res);
             }
-        });
-        assert.equal(response, 'OK', 'Restart failed');
+        }, bWaitReady);
+        assert.equal(response, 0, 'Restart failed');
         return Promise.resolve();
     }
 
-    async checkRestartRequest() {
+    async processOpenRestartRequest(bWaitReady = true) {
         const info = await this.getInfo();
         if (info['state'] === 'openRestartRequest')
-            await this.restart();
+            await this.restart(bWaitReady);
         return Promise.resolve();
     }
 }
