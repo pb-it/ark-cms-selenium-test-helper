@@ -24,7 +24,7 @@ describe('Testsuit', function () {
 
         await TestHelper.delay(1000);
 
-        await app.login(config['api'], config['username'], config['password']);
+        await app.prepare(config['api'], config['username'], config['password']);
 
         await TestHelper.delay(1000);
 
@@ -67,12 +67,14 @@ module.exports = test;`;
             //console.log(error);
             err = error;
         }
-        assert.equal(err['message'], 'HttpError: 401: Unauthorized - https://localhost:3002/sys/info');
-
         const app = helper.getApp();
+        const api = await app.getApiUrl();
+        assert.equal(err['message'], 'HttpError: 401: Unauthorized - ' + api + '/sys/info');
+
         await app.reload();
         await TestHelper.delay(1000);
         await app.login();
+        await TestHelper.delay(1000);
 
         response = await ac.getInfo();
         assert.equal(response['state'], 'running', 'Verifying RestartRequest failed');

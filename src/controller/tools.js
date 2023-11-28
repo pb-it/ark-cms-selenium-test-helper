@@ -44,7 +44,7 @@ class Tools {
 
                 await sleep(1000);
 
-                await app.login();
+                await app.prepare();
 
                 await sleep(1000);
             }

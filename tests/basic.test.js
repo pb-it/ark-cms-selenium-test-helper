@@ -48,7 +48,7 @@ describe('Testsuit', function () {
         var modal = await app.getTopModal();
         assert.notEqual(modal, null, 'Login modal not open');
 
-        await app.login(helper.getConfig()['api'], 'admin', '?');
+        await app.login('admin', '?');
 
         await TestHelper.delay(1000);
 
@@ -62,6 +62,8 @@ describe('Testsuit', function () {
         assert.notEqual(modal, null);
 
         await app.login();
+
+        await TestHelper.delay(1000);
 
         modal = await app.getTopModal();
         assert.equal(modal, null);
@@ -85,12 +87,13 @@ describe('Testsuit', function () {
         this.timeout(10000);
 
         const app = await helper.getApp();
+        const backup = await app.getApiUrl();
         await app.resetLocalStorage();
         const api = await app.getApiUrl(true);
         console.log(api);
         assert.equal(api, null, 'Resetting LocalStorage failed');
-        if (helper.getConfig()['api'])
-            await app.setApiUrl(helper.getConfig()['api']);
+        if (backup)
+            await app.setApiUrl(backup);
         await app.reload();
         const modal = await app.getTopModal(); // close tutorial modal
         assert.notEqual(modal, null);

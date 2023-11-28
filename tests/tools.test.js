@@ -24,7 +24,7 @@ describe('Testsuit', function () {
 
         await TestHelper.delay(1000);
 
-        await app.login(config['api'], config['username'], config['password']);
+        await app.prepare(config['api'], config['username'], config['password']);
 
         await TestHelper.delay(1000);
 
@@ -92,6 +92,7 @@ module.exports = test;`;
         await app.reload();
         await TestHelper.delay(1000);
         await app.login();
+        await TestHelper.delay(1000);
 
         //TODO: verify new db
 
@@ -101,6 +102,7 @@ module.exports = test;`;
         await app.reload();
         await TestHelper.delay(1000);
         await app.login();
+        await TestHelper.delay(1000);
 
         //TODO: confirm restored
 

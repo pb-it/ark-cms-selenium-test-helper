@@ -99,7 +99,7 @@ class App {
         return Promise.resolve(modal);
     }
 
-    async login(api, username, password) {
+    async prepare(api, username, password) {
         if (api) {
             const current = await this.getApiUrl(true);
             if (current !== api) {
@@ -114,6 +114,60 @@ class App {
             }
         }
 
+        var modal = await this.getTopModal();
+        if (modal) {
+            var head;
+            const xpath = '/html/body/div[@class="modal"]/div[@class="modal-content"]/div[@class="panel"]/div/h2';
+            try {
+                //head = this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
+                head = await this._driver.findElement(webdriver.By.xpath(xpath));
+            } catch (error) {
+                ;
+            }
+            if (head) {
+                const text = await head.getText();
+                if (text === 'Attempt to connect to API failed') {
+                    await this.acceptPrivateCertificate();
+
+                    await this.reload();
+                    await sleep(1000);
+                }
+            }
+
+            await this.login(username, password);
+            await sleep(1000);
+
+            var alert;
+            try {
+                alert = await this._driver.switchTo().alert();
+            } catch (error) {
+                alert = null;
+            }
+            if (!alert) {
+                modal = await this.getTopModal();
+                if (modal) {
+                    var button;
+                    try {
+                        button = await modal.findElement(webdriver.By.xpath('//button[text()="Skip"]')); // close tutorial modal
+                    } catch (error) {
+                        ;
+                    }
+                    if (!button) {
+                        try {
+                            button = await modal.findElement(webdriver.By.xpath('//button[text()="OK"]')); // close changelog modal
+                        } catch (error) {
+                            ;
+                        }
+                    }
+                    if (button)
+                        await button.click();
+                }
+            }
+        }
+        return Promise.resolve();
+    }
+
+    async login(username, password) {
         var modal = await this.getTopModal();
         if (modal) {
             var input = await modal.findElement(webdriver.By.css('input[id="username"]'));
@@ -133,24 +187,42 @@ class App {
             var button = await modal.findElement(webdriver.By.xpath('//button[text()="Login"]'));
             if (button)
                 await button.click();
+        }
+        return Promise.resolve();
+    }
+
+    async acceptPrivateCertificate() {
+        const api = await this.getApiUrl();
+        if (api) {
+            const handle = await this._driver.getWindowHandle();
+            await this._driver.switchTo().newWindow('tab');
+
+            await this._driver.get(api);
 
             await sleep(1000);
 
-            var alert;
-            try {
-                alert = await this._driver.switchTo().alert();
-            } catch (error) {
-                alert = null;
-            }
-            if (!alert) {
-                modal = await this.getTopModal(); // close tutorial modal
-                if (modal) {
-                    button = await modal.findElement(webdriver.By.xpath('//button[text()="Skip"]'));
-                    if (button)
-                        await button.click();
-                }
-            }
+            const button = await this._driver.findElement(webdriver.By.xpath('//button[@id="details-button"]'));
+            assert.notEqual(button, null);
+            await button.click();
+
+            const link = await this._driver.findElement(webdriver.By.xpath('//a[@id="proceed-link"]'));
+            assert.notEqual(link, null);
+            await link.click();
+
+            await sleep(1000);
+
+            await this._driver.close();
+            await this._driver.switchTo().window(handle);
         }
+        return Promise.resolve();
+    }
+
+    async logout() {
+        this._driver.executeScript(function () {
+            app.getController().getAuthController().logout();
+        });
+        //await sleep(1000);
+        //return this.reload();
         return Promise.resolve();
     }
 }
