@@ -44,6 +44,8 @@ class Browser {
                             options.addArguments('profile-directory=' + this._config['profile-directory']);
                         if (this._config['download.default_directory'])
                             options.addArguments('download.default_directory=' + this._config['download.default_directory']);
+                        if (this._config['arguments'])
+                            options.addArguments(this._config['arguments']);
                         this._driver = await new Builder()
                             .forBrowser('chrome')
                             .setChromeOptions(options)
@@ -88,6 +90,14 @@ class Browser {
         await this._driver.switchTo().window(handle);
 
         return Promise.resolve(webElement);
+    }
+
+    async getUserAgent() {
+        return this._driver.executeScript(
+            function () {
+                return navigator.userAgent;
+            }
+        );
     }
 }
 

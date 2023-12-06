@@ -191,6 +191,10 @@ class App {
         return Promise.resolve();
     }
 
+    async login2(username, password) {
+        return this.request('POST', '/sys/auth/login', { 'user': username, 'pass': password });
+    }
+
     async acceptPrivateCertificate() {
         const api = await this.getApiUrl();
         if (api) {
@@ -224,6 +228,68 @@ class App {
         //await sleep(1000);
         //return this.reload();
         return Promise.resolve();
+    }
+
+    async request(method, path, data) {
+        return this._driver.executeAsyncScript(async function (method, path, data) {
+            const callback = arguments[arguments.length - 1];
+            var res;
+            try {
+                const apiClient = app.getController().getApiController().getApiClient()
+                var str;
+                if (data) {
+                    if (typeof data !== 'string')
+                        str = HttpClient.urlEncode(data);
+                    else
+                        str = data;
+                }
+                res = await apiClient.request(method, path, str);
+            } catch (error) {
+                res = error;
+            }
+            callback(res);
+        }, method, path, data);
+    }
+
+    async read(dataType, id, where, bIgnoreCache = true) {
+        return this._driver.executeAsyncScript(async function (dataType, id, where, bIgnoreCache) {
+            const callback = arguments[arguments.length - 1];
+            var res;
+            try {
+                res = await app.getController().getDataService().fetchData(dataType, id, where, null, null, null, null, bIgnoreCache);
+            } catch (error) {
+                res = error;
+            }
+            callback(res);
+        }, dataType, id, where, bIgnoreCache);
+    }
+
+    async create(dataType, data) {
+        return this._driver.executeAsyncScript(async () => {
+            const callback = arguments[arguments.length - 1];
+            var res;
+            try {
+                const obj = new CrudObject(arguments[0], arguments[1]);
+                res = await obj.create();
+            } catch (error) {
+                res = error;
+            }
+            callback(res);
+        }, dataType, data);
+    }
+
+    async update(dataType, id, data) {
+        return this._driver.executeAsyncScript(async () => {
+            const callback = arguments[arguments.length - 1];
+            var res;
+            try {
+                const obj = new CrudObject(arguments[0], { 'id': arguments[1] });
+                res = await obj.update(arguments[2]);
+            } catch (error) {
+                res = error;
+            }
+            callback(res);
+        }, dataType, id, data);
     }
 }
 

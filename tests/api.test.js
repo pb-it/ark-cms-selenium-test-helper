@@ -81,4 +81,15 @@ module.exports = test;`;
 
         return Promise.resolve();
     });
+
+    it('#check read', async function () {
+        this.timeout(10000);
+
+        const app = helper.getApp();
+        const data = await app.read('_model');
+        console.log(data);
+        assert.equal(data.length > 0, true);
+
+        return Promise.resolve();
+    });
 });
