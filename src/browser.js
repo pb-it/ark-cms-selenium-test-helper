@@ -38,10 +38,12 @@ class Browser {
                         //this._driver = await new Builder().withCapabilities(Capabilities.chrome()).build();
                         var chrome = require("selenium-webdriver/chrome");
                         var options = new chrome.Options();
-                        if (this._config['user-data-dir'])
-                            options.addArguments('user-data-dir=' + this._config['user-data-dir']);
+                        if (this._config['binary'])
+                            options.setChromeBinaryPath(this._config['binary']);
                         if (this._config['profile-directory'])
                             options.addArguments('profile-directory=' + this._config['profile-directory']);
+                        if (this._config['user-data-dir'])
+                            options.addArguments('user-data-dir=' + this._config['user-data-dir']);
                         if (this._config['download.default_directory'])
                             options.addArguments('download.default_directory=' + this._config['download.default_directory']);
                         if (this._config['arguments'])

@@ -1,6 +1,6 @@
 {
     "name": "@pb-it/ark-cms-selenium-test-helper",
-    "version": "0.1.8-beta",
+    "version": "0.1.9-beta",
     "description": "Helper for running selenium tests on ArkCMS",
     "main": "index.js",
     "scripts": {

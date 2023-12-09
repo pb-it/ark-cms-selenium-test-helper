@@ -251,17 +251,17 @@ class App {
         }, method, path, data);
     }
 
-    async read(dataType, id, where, bIgnoreCache = true) {
-        return this._driver.executeAsyncScript(async function (dataType, id, where, bIgnoreCache) {
+    async read(dataType, id, where, sort, limit, filters, search, bIgnoreCache) {
+        return this._driver.executeAsyncScript(async function (dataType, id, where, sort, limit, filters, search, bIgnoreCache) {
             const callback = arguments[arguments.length - 1];
             var res;
             try {
-                res = await app.getController().getDataService().fetchData(dataType, id, where, null, null, null, null, bIgnoreCache);
+                res = await app.getController().getDataService().fetchData(dataType, id, where, sort, limit, filters, search, bIgnoreCache);
             } catch (error) {
                 res = error;
             }
             callback(res);
-        }, dataType, id, where, bIgnoreCache);
+        }, dataType, id, where, sort, limit, filters, search, bIgnoreCache);
     }
 
     async create(dataType, data) {
@@ -290,6 +290,20 @@ class App {
             }
             callback(res);
         }, dataType, id, data);
+    }
+
+    async delete(dataType, id) {
+        return this._driver.executeAsyncScript(async () => {
+            const callback = arguments[arguments.length - 1];
+            var res;
+            try {
+                const obj = new CrudObject(arguments[0], { 'id': arguments[1] });
+                res = await obj.delete();
+            } catch (error) {
+                res = error;
+            }
+            callback(res);
+        }, dataType, id);
     }
 }
 
