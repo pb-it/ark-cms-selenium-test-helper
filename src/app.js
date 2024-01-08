@@ -125,17 +125,27 @@ class App {
                 ;
             }
             if (head) {
-                const text = await head.getText();
+                var text = await head.getText();
                 if (text === 'Attempt to connect to API failed') {
                     await this.acceptPrivateCertificate();
 
                     await this.reload();
                     await sleep(1000);
+
+                    head = null;
+                    try {
+                        head = await this._driver.findElement(webdriver.By.xpath(xpath));
+                    } catch (error) {
+                        ;
+                    }
+                    if (head)
+                        text = await head.getText();
+                }
+                if (text === 'Login') {
+                    await this.login(username, password);
+                    await sleep(1000);
                 }
             }
-
-            await this.login(username, password);
-            await sleep(1000);
 
             var alert;
             try {
