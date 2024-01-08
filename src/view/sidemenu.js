@@ -25,8 +25,11 @@ class Modal {
         var button;
         button = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
         assert.notEqual(button, null, `Menu '${title}' not found`);
+        const list = await button.getAttribute('class');
+        if (!list.includes('active'))
+            await button.click();
         this._breadcrumb.push(title);
-        return button.click();
+        return Promise.resolve();
     }
 }
 
