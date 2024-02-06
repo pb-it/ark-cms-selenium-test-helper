@@ -56,7 +56,7 @@ describe('Testsuit', function () {
     it('#check title', async function () {
         this.timeout(10000);
 
-        const title = 'WING-CMS';
+        const title = 'ARK-CMS';
         var tmp = await driver.getTitle();
         assert.equal(tmp, title, 'Title missmatch');
 
@@ -67,6 +67,9 @@ describe('Testsuit', function () {
         this.timeout(10000);
 
         const app = helper.getApp();
+        await app.logout();
+        await TestHelper.delay(1000);
+
         var modal = await app.getTopModal();
         assert.notEqual(modal, null, 'Login modal not open');
 
@@ -97,7 +100,7 @@ describe('Testsuit', function () {
         this.timeout(10000);
 
         const app = helper.getApp();
-        var modal = await app.logout();
+        await app.logout();
         await TestHelper.delay(1000);
 
         var modal = await app.getTopModal();

@@ -1,0 +1,24 @@
+{
+    "name": "note",
+    "options": {
+        "increments": true,
+        "timestamps": true
+    },
+    "attributes": [
+        {
+            "name": "title",
+            "dataType": "string"
+        },
+        {
+            "name": "note",
+            "dataType": "text",
+            "view": "plain"
+        }
+    ],
+    "defaults": {
+        "title": "title",
+        "view": {
+            "details": "all"
+        }
+    }
+}

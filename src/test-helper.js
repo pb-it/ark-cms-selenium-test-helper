@@ -7,6 +7,7 @@ const Browser = require('./browser.js');
 
 const App = require('./app.js');
 const ApiController = require('./controller/api-controller.js');
+const ModelController = require('./controller/model-controller.js');
 const ExtensionController = require('./controller/extension-controller.js');
 
 class TestHelper {
@@ -19,6 +20,7 @@ class TestHelper {
 
     _app;
     _apiController;
+    _modelController;
     _extensionController;
 
     constructor(browser) {
@@ -36,6 +38,7 @@ class TestHelper {
         this._app = new App(this, this._config['host']);
         await this._app.load();
         this._apiController = new ApiController(this);
+        this._modelController = new ModelController(this);
         this._extensionController = new ExtensionController(this);
         return Promise.resolve();
     }
@@ -54,6 +57,10 @@ class TestHelper {
 
     getApiController() {
         return this._apiController;
+    }
+
+    getModelController() {
+        return this._modelController;
     }
 
     getExtensionController() {
