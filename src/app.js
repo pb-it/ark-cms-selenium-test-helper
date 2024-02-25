@@ -5,6 +5,7 @@ const sleep = require('util').promisify(setTimeout);
 
 const Modal = require('./view/modal.js');
 const SideMenu = require('./view/sidemenu.js');
+const ContextMenu = require('./view/contextmenu.js');
 
 class App {
 
@@ -87,8 +88,47 @@ class App {
         return Promise.resolve();
     }
 
+    async setDebugMode(bEnable) {
+        const response = await this._driver.executeAsyncScript(async () => {
+            const callback = arguments[arguments.length - 1];
+
+            localStorage.setItem('debug', JSON.stringify({ bDebug: arguments[0] }));
+            const controller = app.getController();
+            //controller.reloadApplication(); // will kill this script
+            await controller.initController();
+            controller.getView().initView();
+            //await controller.reloadState();
+
+            callback('OK');
+        }, bEnable);
+        assert.equal(response, 'OK');
+        return Promise.resolve();
+    }
+
+    async waitLoadingFinished(timeout = 10) {
+        const overlay = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': '//div[@id="overlay"]' }), 1000);
+        var display = await overlay.getCssValue('display');
+        if (display == 'none')
+            await sleep(100);
+
+        var i = 0;
+        while (display == 'block' && i < timeout) {
+            await sleep(1000);
+            display = await overlay.getCssValue('display');
+            i++;
+        }
+        assert.equal(display, 'none');
+        return Promise.resolve();
+    }
+
     getSideMenu() {
         return new SideMenu(this._helper);
+    }
+
+    async openContextMenu(target) {
+        const menu = new ContextMenu(this._helper, target);
+        await menu.click();
+        return Promise.resolve(menu);
     }
 
     async getTopModal() {

@@ -1,7 +1,7 @@
 const assert = require('assert');
 const webdriver = require('selenium-webdriver');
 
-class Modal {
+class SideMenu {
 
     _helper
     _driver;
@@ -58,4 +58,4 @@ class Modal {
     }
 }
 
-module.exports = Modal;
+module.exports = SideMenu;

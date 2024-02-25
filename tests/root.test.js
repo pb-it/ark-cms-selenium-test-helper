@@ -28,6 +28,7 @@ describe("Root Suite", function () {
     require('./clear.test.js');
     require('./basic.test.js');
     require('./sidemenu.test.js');
+    require('./contextmenu.test.js');
     require('./api.test.js');
     require('./models.test.js');
     require('./tools.test.js');

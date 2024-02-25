@@ -151,6 +151,40 @@ describe('Testsuit', function () {
         return Promise.resolve();
     });
 
+    it('#wait loading finished', async function () {
+        this.timeout(10000);
+
+        response = await driver.executeAsyncScript(async () => {
+            const callback = arguments[arguments.length - 1];
+
+            const controller = app.getController();
+            const route = {
+                "regex": "^/sleep$",
+                "fn": async function () {
+                    const controller = app.getController();
+                    controller.setLoadingState(true);
+                    await new Promise(r => setTimeout(r, 5000));
+                    controller.setLoadingState(false);
+                    return Promise.resolve();
+                }
+            };
+            controller.getRouteController().addRoute(route);
+
+            callback('OK');
+        });
+        assert.equal(response, 'OK');
+
+        const app = await helper.getApp();
+        app.navigate('/sleep');
+
+        const start = Date.now();
+        await app.waitLoadingFinished();
+        const duration = (Date.now() - start) / 1000;
+        assert.ok(duration > 5 && duration < 6);
+
+        return Promise.resolve();
+    });
+
     xit('#check downloads', async function () {
         this.timeout(10000);
 

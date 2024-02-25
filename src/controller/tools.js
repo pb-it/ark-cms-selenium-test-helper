@@ -41,16 +41,14 @@ class Tools {
             if (host != config['host']) {
                 app = new App(this._helper, host);
                 await app.load();
-
                 await sleep(1000);
-
                 await app.prepare();
-
                 await sleep(1000);
             }
         } else
             app = this._helper.getApp();
         const api = await app.getApiUrl();
+        assert.notEqual(api, null);
         await this._driver.get(api + '/sys/tools/db/backup');
 
         const xpath = `/html/body`;

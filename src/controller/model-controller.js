@@ -24,6 +24,11 @@ class ModelController {
 
             var res;
             try {
+                /*const controller = app.getController();
+                const ac = controller.getApiController().getApiClient();
+                const version = controller.getVersionController().getAppVersion();
+                res = ac.requestData('PUT', '_model?v=' + version, model);*/
+
                 const model = new XModel(data);
                 res = await model.uploadData();
             } catch (error) {
