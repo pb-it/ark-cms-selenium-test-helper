@@ -69,7 +69,7 @@ class TestHelper {
 
     async getForm(element) {
         var form;
-        var elements = await element.findElements(webdriver.By.xpath('//form[@class="crudform"]'));
+        var elements = await element.findElements(webdriver.By.xpath('//form[contains(@class, "crudform")]'));
         if (elements && elements.length == 1)
             form = elements[0];
         return Promise.resolve(form);
