@@ -69,7 +69,7 @@ class TestHelper {
 
     async getForm(element) {
         var form;
-        var elements = await element.findElements(webdriver.By.xpath('//form[contains(@class, "crudform")]'));
+        var elements = await element.findElements(webdriver.By.xpath('.//form[contains(@class, "crudform")]'));
         if (elements && elements.length == 1)
             form = elements[0];
         return Promise.resolve(form);
@@ -90,9 +90,9 @@ class TestHelper {
         var button;
         var elements;
         if (text == 'Create')
-            elements = await element.findElements(webdriver.By.xpath(`//button[text()="${text}" and not(ancestor::div[@class="formentry"])]`));
+            elements = await element.findElements(webdriver.By.xpath(`.//button[text()="${text}" and not(ancestor::div[@class="formentry"])]`));
         else
-            elements = await element.findElements(webdriver.By.xpath(`//button[text()="${text}"]`));
+            elements = await element.findElements(webdriver.By.xpath(`.//button[text()="${text}"]`));
         if (elements && elements.length == 1)
             button = elements[0];
         return Promise.resolve(button);

@@ -135,7 +135,7 @@ class App {
         var modal;
         const elements = await this._driver.findElements(webdriver.By.xpath('/html/body/div[@class="modal"]'));
         if (elements && elements.length > 0)
-            modal = new Modal(this._helper, elements[0]);
+            modal = new Modal(this._helper, elements[elements.length - 1]);
         return Promise.resolve(modal);
     }
 
