@@ -70,7 +70,8 @@ describe('Testsuit', function () {
         await app.logout();
         await TestHelper.delay(1000);
 
-        var modal = await app.getTopModal();
+        const window = app.getWindow();
+        var modal = await window.getTopModal();
         assert.notEqual(modal, null, 'Login modal not open');
 
         await app.login('admin', '?');
@@ -83,14 +84,14 @@ describe('Testsuit', function () {
         assert.equal(text, 'Login failed');
         await alert.accept();
 
-        modal = await app.getTopModal();
+        modal = await window.getTopModal();
         assert.notEqual(modal, null);
 
         await app.login();
 
         await TestHelper.delay(1000);
 
-        modal = await app.getTopModal();
+        modal = await window.getTopModal();
         assert.equal(modal, null);
 
         return Promise.resolve();
@@ -103,7 +104,8 @@ describe('Testsuit', function () {
         await app.logout();
         await TestHelper.delay(1000);
 
-        var modal = await app.getTopModal();
+        const window = app.getWindow();
+        var modal = await window.getTopModal();
         assert.notEqual(modal, null, 'Login modal not open');
 
         await app.login2('admin', 'admin');
@@ -111,7 +113,7 @@ describe('Testsuit', function () {
         await app.reload();
         await TestHelper.delay(1000);
 
-        modal = await app.getTopModal();
+        modal = await window.getTopModal();
         assert.equal(modal, null);
 
         return Promise.resolve();
@@ -142,7 +144,8 @@ describe('Testsuit', function () {
             await app.setApiUrl(backup);
         await app.reload();
         await TestHelper.delay(1000);
-        const modal = await app.getTopModal(); // close tutorial modal
+        const window = app.getWindow();
+        const modal = await window.getTopModal(); // close tutorial modal
         assert.notEqual(modal, null);
         const button = await modal.findElement(webdriver.By.xpath('//button[text()="Skip"]'));
         assert.notEqual(button, null);
@@ -181,6 +184,9 @@ describe('Testsuit', function () {
         await app.waitLoadingFinished();
         const duration = (Date.now() - start) / 1000;
         assert.ok(duration > 5 && duration < 6);
+
+        app.navigate('/');
+        await TestHelper.delay(1000);
 
         return Promise.resolve();
     });

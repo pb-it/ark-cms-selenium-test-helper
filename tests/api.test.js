@@ -1,9 +1,4 @@
-//const path = require('path');
-const fs = require('fs');
-
 const assert = require('assert');
-//const webdriver = require('selenium-webdriver');
-//const test = require('selenium-webdriver/testing');
 
 const config = require('./config/test-config.js');
 const TestHelper = require('../src/test-helper.js');
@@ -28,7 +23,7 @@ describe('Testsuit', function () {
 
         await TestHelper.delay(1000);
 
-        var modal = await app.getTopModal();
+        const modal = await app.getWindow().getTopModal();
         assert.equal(modal, null);
 
         return Promise.resolve();
@@ -43,7 +38,7 @@ describe('Testsuit', function () {
             allPassed = allPassed && (this.currentTest.state === 'passed');
     });
 
-    it('#test restart', async function () {
+    it('#test restart API', async function () {
         this.timeout(120000);
 
         const snippet = `async function test() {
@@ -51,7 +46,8 @@ describe('Testsuit', function () {
     return Promise.resolve('OK');
 };
 module.exports = test;`;
-        const ac = helper.getApiController();
+        const app = helper.getApp();
+        const ac = app.getApiController();
         var response = await ac.getTools().serverEval(snippet);
         assert.equal(response, 'OK', 'Setting RestartRequest failed');
 
@@ -67,7 +63,6 @@ module.exports = test;`;
             //console.log(error);
             err = error;
         }
-        const app = helper.getApp();
         const api = await app.getApiUrl();
         assert.equal(err['message'], 'HttpError: 401: Unauthorized - ' + api + '/sys/info');
 
@@ -78,17 +73,6 @@ module.exports = test;`;
 
         response = await ac.getInfo();
         assert.equal(response['state'], 'running', 'Verifying RestartRequest failed');
-
-        return Promise.resolve();
-    });
-
-    it('#check read', async function () {
-        this.timeout(10000);
-
-        const app = helper.getApp();
-        const data = await app.read('_model');
-        console.log(data);
-        assert.equal(data.length > 0, true);
 
         return Promise.resolve();
     });

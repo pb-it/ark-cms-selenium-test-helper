@@ -25,7 +25,7 @@ describe('Testsuit', function () {
 
         await TestHelper.delay(1000);
 
-        var modal = await app.getTopModal();
+        const modal = await app.getWindow().getTopModal();
         assert.equal(modal, null);
 
         return Promise.resolve();
@@ -45,8 +45,9 @@ describe('Testsuit', function () {
 
         const app = helper.getApp();
         await app.setDebugMode(true);
+        const window = app.getWindow();
 
-        const sidemenu = app.getSideMenu();
+        const sidemenu = window.getSideMenu();
         await sidemenu.click('Data');
         await TestHelper.delay(1000);
         var menu = await sidemenu.getEntry('other');
@@ -65,20 +66,20 @@ describe('Testsuit', function () {
         var panels = await driver.findElements(webdriver.By.xpath(xpathPanel));
         assert.equal(panels.length, 1);
 
-        var contextmenu = await app.openContextMenu(panels[0]);
+        var contextmenu = await window.openContextMenu(panels[0]);
         await TestHelper.delay(1000);
         await contextmenu.click('Details');
         await TestHelper.delay(1000);
 
-        var modal = await app.getTopModal();
+        var modal = await window.getTopModal();
         xpath = `//p[text()="admin"]`;
         item = await driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
 
         await modal.closeModal();
-        modal = await app.getTopModal();
+        modal = await window.getTopModal();
         assert.equal(modal, null);
 
-        contextmenu = await app.openContextMenu(panels[0]);
+        contextmenu = await window.openContextMenu(panels[0]);
         await TestHelper.delay(1000);
         await contextmenu.click('Show');
         await TestHelper.delay(1000);

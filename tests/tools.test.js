@@ -1,4 +1,4 @@
-//const path = require('path');
+const path = require('path');
 const fs = require('fs');
 
 const assert = require('assert');
@@ -28,7 +28,7 @@ describe('Testsuit', function () {
 
         await TestHelper.delay(1000);
 
-        var modal = await app.getTopModal();
+        const modal = await app.getWindow().getTopModal();
         assert.equal(modal, null);
 
         return Promise.resolve();
@@ -57,10 +57,12 @@ async function test() {
 };
 
 module.exports = test;`;
-        const response = await helper.getApiController().getTools().serverEval(snippet);
+        const app = helper.getApp();
+        const ac = app.getApiController();
+        const response = await ac.getTools().serverEval(snippet);
         assert.equal(response, 'OK', 'Response missmatch');
 
-        const log = await helper.getApiController().getLog();
+        const log = await ac.getLog();
         assert(log.endsWith(`[INFO] Date: ${str}`));
 
         return Promise.resolve();
@@ -72,7 +74,7 @@ module.exports = test;`;
         //TODO: take db ident
 
         const app = helper.getApp();
-        const ac = helper.getApiController();
+        const ac = app.getApiController();
         const tools = ac.getTools();
         await tools.downloadBackup();
 
@@ -98,6 +100,25 @@ module.exports = test;`;
 
         await tools.restoreBackup(file);
 
+        await ac.restart(true);
+        await app.reload();
+        await TestHelper.delay(1000);
+        await app.login();
+        await TestHelper.delay(1000);
+
+        //TODO: confirm restored
+
+        return Promise.resolve();
+    });
+
+    it('#test restore dump', async function () {
+        this.timeout(120000);
+
+        const app = helper.getApp();
+        const ac = app.getApiController();
+        const tools = ac.getTools();
+        const file = path.join(__dirname, './data/dump/movie-db.sql');
+        await tools.restoreBackup(file);
         await ac.restart(true);
         await app.reload();
         await TestHelper.delay(1000);

@@ -28,7 +28,7 @@ describe('Testsuit', function () {
 
         await TestHelper.delay(1000);
 
-        var modal = await app.getTopModal();
+        const modal = await app.getWindow().getTopModal();
         assert.equal(modal, null);
 
         return Promise.resolve();
@@ -47,12 +47,13 @@ describe('Testsuit', function () {
         this.timeout(30000);
 
         const app = helper.getApp();
-        var data = await app.read('_model');
+        const ds = app.getDataService();
+        var data = await ds.read('_model');
         var length = data.length;
 
         const str = fs.readFileSync(path.join(__dirname, './data/models/note.json'), 'utf8');
         const model = JSON.parse(str);
-        const id = await helper.getModelController().addModel(model);
+        const id = await app.getModelController().addModel(model);
         console.log(id);
 
         await app.reload();
@@ -60,7 +61,7 @@ describe('Testsuit', function () {
         await app.login();
         await TestHelper.delay(1000);
 
-        data = await app.read('_model');
+        data = await ds.read('_model');
         assert.equal(data.length, length + 1, 'Adding model failed');
 
         return Promise.resolve();
@@ -70,10 +71,12 @@ describe('Testsuit', function () {
         this.timeout(30000);
 
         const app = helper.getApp();
-        var data = await app.read('_model');
+        const ds = app.getDataService();
+        var data = await ds.read('_model');
         var length = data.length;
 
-        const sidemenu = app.getSideMenu();
+        const window = app.getWindow();
+        const sidemenu = window.getSideMenu();
         await sidemenu.click('Models');
         await TestHelper.delay(1000);
         await sidemenu.click('note');
@@ -81,13 +84,13 @@ describe('Testsuit', function () {
         await sidemenu.click('Delete');
         await TestHelper.delay(1000);
 
-        var modal = await app.getTopModal();
+        var modal = await window.getTopModal();
         assert.notEqual(modal, null);
         const button = await modal.findElement(webdriver.By.xpath('//button[text()="Delete"]'));
         assert.notEqual(button, null);
         await button.click();
         await TestHelper.delay(1000);
-        modal = await app.getTopModal();
+        modal = await window.getTopModal();
         assert.equal(modal, null);
 
         await app.reload();
@@ -95,7 +98,7 @@ describe('Testsuit', function () {
         await app.login();
         await TestHelper.delay(1000);
 
-        data = await app.read('_model');
+        data = await ds.read('_model');
         assert.equal(data.length, length - 1, 'Deleting model failed');
 
         return Promise.resolve();

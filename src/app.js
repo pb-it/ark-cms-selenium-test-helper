@@ -3,9 +3,11 @@ const webdriver = require('selenium-webdriver');
 
 const sleep = require('util').promisify(setTimeout);
 
-const Modal = require('./view/modal.js');
-const SideMenu = require('./view/sidemenu.js');
-const ContextMenu = require('./view/contextmenu.js');
+const ApiController = require('./controller/api-controller.js');
+const ModelController = require('./controller/model-controller.js');
+const ExtensionController = require('./controller/extension-controller.js');
+const DataService = require('./controller/data-service.js');
+const Window = require('./view/window.js');
 
 class App {
 
@@ -15,11 +17,45 @@ class App {
     _host;
     _api;
 
+    _apiController;
+    _modelController;
+    _extensionController;
+    _dataService;
+    _window;
+
     constructor(helper, host) {
         this._helper = helper;
         this._driver = this._helper.getBrowser().getDriver();
 
         this._host = host;
+
+        this._apiController = new ApiController(this._helper);
+        this._modelController = new ModelController(this._helper);
+        this._extensionController = new ExtensionController(this._helper);
+    }
+
+    getApiController() {
+        return this._apiController;
+    }
+
+    getModelController() {
+        return this._modelController;
+    }
+
+    getExtensionController() {
+        return this._extensionController;
+    }
+
+    getDataService() {
+        if (!this._dataService)
+            this._dataService = new DataService(this._helper);
+        return this._dataService;
+    }
+
+    getWindow() {
+        if (!this._window)
+            this._window = new Window(this._helper);
+        return this._window;
     }
 
     async load() {
@@ -121,24 +157,6 @@ class App {
         return Promise.resolve();
     }
 
-    getSideMenu() {
-        return new SideMenu(this._helper);
-    }
-
-    async openContextMenu(target) {
-        const menu = new ContextMenu(this._helper, target);
-        await menu.click();
-        return Promise.resolve(menu);
-    }
-
-    async getTopModal() {
-        var modal;
-        const elements = await this._driver.findElements(webdriver.By.xpath('/html/body/div[@class="modal"]'));
-        if (elements && elements.length > 0)
-            modal = new Modal(this._helper, elements[elements.length - 1]);
-        return Promise.resolve(modal);
-    }
-
     async prepare(api, username, password) {
         if (api) {
             const current = await this.getApiUrl(true);
@@ -154,7 +172,8 @@ class App {
             }
         }
 
-        var modal = await this.getTopModal();
+        const window = this.getWindow();
+        var modal = await window.getTopModal();
         if (modal) {
             var head;
             const xpath = '/html/body/div[@class="modal"]/div[@class="modal-content"]/div[@class="panel"]/div/h2';
@@ -194,7 +213,7 @@ class App {
                 alert = null;
             }
             if (!alert) {
-                modal = await this.getTopModal();
+                modal = await window.getTopModal();
                 if (modal) {
                     var button;
                     try {
@@ -218,7 +237,8 @@ class App {
     }
 
     async login(username, password) {
-        var modal = await this.getTopModal();
+        const window = this.getWindow();
+        var modal = await window.getTopModal();
         if (modal) {
             var input = await modal.findElement(webdriver.By.css('input[id="username"]'));
             if (input) {
@@ -242,7 +262,7 @@ class App {
     }
 
     async login2(username, password) {
-        return this.request('POST', '/sys/auth/login', { 'user': username, 'pass': password });
+        return this.getDataService().request('POST', '/sys/auth/login', { 'user': username, 'pass': password });
     }
 
     async acceptPrivateCertificate() {
@@ -278,82 +298,6 @@ class App {
         //await sleep(1000);
         //return this.reload();
         return Promise.resolve();
-    }
-
-    async request(method, path, data) {
-        return this._driver.executeAsyncScript(async function (method, path, data) {
-            const callback = arguments[arguments.length - 1];
-            var res;
-            try {
-                const apiClient = app.getController().getApiController().getApiClient()
-                var str;
-                if (data) {
-                    if (typeof data !== 'string')
-                        str = HttpClient.urlEncode(data);
-                    else
-                        str = data;
-                }
-                res = await apiClient.request(method, path, str);
-            } catch (error) {
-                res = error;
-            }
-            callback(res);
-        }, method, path, data);
-    }
-
-    async read(dataType, id, where, sort, limit, filters, search, bIgnoreCache) {
-        return this._driver.executeAsyncScript(async function (dataType, id, where, sort, limit, filters, search, bIgnoreCache) {
-            const callback = arguments[arguments.length - 1];
-            var res;
-            try {
-                res = await app.getController().getDataService().fetchData(dataType, id, where, sort, limit, filters, search, bIgnoreCache);
-            } catch (error) {
-                res = error;
-            }
-            callback(res);
-        }, dataType, id, where, sort, limit, filters, search, bIgnoreCache);
-    }
-
-    async create(dataType, data) {
-        return this._driver.executeAsyncScript(async () => {
-            const callback = arguments[arguments.length - 1];
-            var res;
-            try {
-                const obj = new CrudObject(arguments[0], arguments[1]);
-                res = await obj.create();
-            } catch (error) {
-                res = error;
-            }
-            callback(res);
-        }, dataType, data);
-    }
-
-    async update(dataType, id, data) {
-        return this._driver.executeAsyncScript(async () => {
-            const callback = arguments[arguments.length - 1];
-            var res;
-            try {
-                const obj = new CrudObject(arguments[0], { 'id': arguments[1] });
-                res = await obj.update(arguments[2]);
-            } catch (error) {
-                res = error;
-            }
-            callback(res);
-        }, dataType, id, data);
-    }
-
-    async delete(dataType, id) {
-        return this._driver.executeAsyncScript(async () => {
-            const callback = arguments[arguments.length - 1];
-            var res;
-            try {
-                const obj = new CrudObject(arguments[0], { 'id': arguments[1] });
-                res = await obj.delete();
-            } catch (error) {
-                res = error;
-            }
-            callback(res);
-        }, dataType, id);
     }
 }
 
