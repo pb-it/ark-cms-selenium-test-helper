@@ -1,3 +1,6 @@
+const path = require('path');
+const fs = require('fs');
+
 const assert = require('assert');
 const webdriver = require('selenium-webdriver');
 
@@ -196,6 +199,42 @@ describe('Testsuit', function () {
 
         const downloads = await helper.getBrowser().getDownloads();
         console.log(downloads);
+
+        return Promise.resolve();
+    });
+
+    it('#install extension', async function () {
+        this.timeout(30000);
+
+        const ext = 'echo';
+        const file = path.resolve(__dirname, "./tmp/" + ext + "@1.0.0.zip");
+        if (fs.existsSync(file)) {
+            const app = helper.getApp();
+            await app.getExtensionController().addExtension(ext, file, true);
+
+            await app.reload();
+
+            await TestHelper.delay(1000);
+
+            await app.login();
+
+            await TestHelper.delay(1000);
+
+            const modal = await app.getWindow().getTopModal();
+            assert.equal(modal, null);
+
+            const response = await driver.executeAsyncScript(async () => {
+                const callback = arguments[arguments.length - 1];
+
+                const controller = app.getController();
+                const ac = controller.getApiController();
+                const client = ac.getApiClient();
+                const res = await client.request('GET', '/api/ext/test-helper/echo?message=hello world');
+                callback(res);
+            });
+            assert.equal(response, 'hello world');
+        } else
+            this.skip();
 
         return Promise.resolve();
     });

@@ -77,7 +77,7 @@ class ExtensionController {
         await sleep(1000);
 
         if (bRestartIfRequested)
-            await this._helper.getApiController().processOpenRestartRequest();
+            await this._helper.getApp().getApiController().processOpenRestartRequest();
 
         return Promise.resolve();
     }

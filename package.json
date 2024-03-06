@@ -1,6 +1,6 @@
 {
     "name": "@pb-it/ark-cms-selenium-test-helper",
-    "version": "0.1.15-beta",
+    "version": "0.1.16-beta",
     "description": "Helper for running selenium tests on ArkCMS",
     "main": "index.js",
     "scripts": {
@@ -9,6 +9,7 @@
         "test:data-service": "mocha --bail tests/data-service.test.js",
         "test:top-navigation-bar": "mocha --bail tests/top-navigation-bar.test.js",
         "test:contextmenu": "mocha --bail tests/contextmenu.test.js",
+        "test:window": "mocha --bail tests/window.test.js",
         "test:api": "mocha --bail tests/api.test.js",
         "test:models": "mocha --bail tests/models.test.js",
         "test:tools": "mocha --bail tests/tools.test.js"

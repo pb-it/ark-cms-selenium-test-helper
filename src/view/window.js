@@ -4,6 +4,7 @@ const webdriver = require('selenium-webdriver');
 const SideMenu = require('./sidemenu.js');
 const TopNavigationBar = require('./top-navigation-bar.js');
 const ContextMenu = require('./contextmenu.js');
+const Canvas = require('./canvas.js');
 const Modal = require('./modal.js');
 
 class Window {
@@ -22,6 +23,14 @@ class Window {
 
     getTopNavigationBar() {
         return new TopNavigationBar(this._helper);
+    }
+
+    async getCanvas() {
+        var canvas;
+        const elem = await this._driver.findElement(webdriver.By.xpath('/html/body/div[@id="mainframe"]/main/div[@id="canvas"]'));
+        if (elem)
+            canvas = new Canvas(this._helper, elem);
+        return Promise.resolve(canvas);
     }
 
     async openContextMenu(target) {

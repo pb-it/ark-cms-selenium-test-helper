@@ -34,4 +34,5 @@ describe("Root Suite", function () {
     require('./sidemenu.test.js');
     require('./top-navigation-bar.test.js');
     require('./contextmenu.test.js');
+    require('./window.test.js');
 });
