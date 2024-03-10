@@ -42,8 +42,11 @@ class TestHelper {
         return this._browser;
     }
 
-    getApp() {
-        return this._app;
+    getApp(host) {
+        if (host)
+            return new App(this, host);
+        else
+            return this._app;
     }
 }
 

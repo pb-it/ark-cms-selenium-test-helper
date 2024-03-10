@@ -6,7 +6,7 @@ const webdriver = require('selenium-webdriver');
 
 const sleep = require('util').promisify(setTimeout);
 
-const App = require('../app.js');
+//const App = require('../app.js'); // ERROR: circular dependency
 
 class Tools {
 
@@ -35,18 +35,16 @@ class Tools {
         const handle = await this._driver.getWindowHandle();
         await this._driver.switchTo().newWindow('tab');
 
-        var app;
+        var app = this._helper.getApp();
         if (host) {
-            const config = this._helper.getConfig();
-            if (host != config['host']) {
-                app = new App(this._helper, host);
+            if (host != app.getHost()) {
+                app = this._helper.getApp(host);
                 await app.load();
                 await sleep(1000);
                 await app.prepare();
                 await sleep(1000);
             }
-        } else
-            app = this._helper.getApp();
+        }
         const api = await app.getApiUrl();
         assert.notEqual(api, null);
         await this._driver.get(api + '/sys/tools/db/backup');

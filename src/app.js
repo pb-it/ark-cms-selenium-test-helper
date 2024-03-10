@@ -34,6 +34,14 @@ class App {
         this._extensionController = new ExtensionController(this._helper);
     }
 
+    getHost() {
+        return this._host;
+    }
+
+    setHost(host) {
+        this._host = host;
+    }
+
     getApiController() {
         return this._apiController;
     }

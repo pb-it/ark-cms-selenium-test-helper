@@ -68,6 +68,19 @@ module.exports = test;`;
         return Promise.resolve();
     });
 
+    it('#test circular dependency', async function () {
+        this.timeout(120000);
+
+        const app = helper.getApp();
+        app.setHost('');
+        const ac = app.getApiController();
+        const tools = ac.getTools();
+        await tools.downloadBackup(config['host']);
+        app.setHost(config['host']);
+
+        return Promise.resolve();
+    });
+
     it('#test database backup/restore', async function () {
         this.timeout(120000);
 
