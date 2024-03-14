@@ -16,6 +16,7 @@ class App {
 
     _host;
     _api;
+    _bLoggedIn;
 
     _apiController;
     _modelController;
@@ -66,23 +67,42 @@ class App {
         return this._window;
     }
 
-    async load() {
-        if (this._host)
-            await this._driver.get(this._host);
+    /**
+     * INFO: If the browser window already contains a loaded application and you do not need to reload it,
+     *       use the 'navigate' method instead
+     * @param {*} path 
+     * @returns 
+     */
+    async load(path) {
+        var url;
+        if (path)
+            url = this._host + path;
+        else
+            url = this._host;
+        await this._driver.get(url);
         this._api = await this.getApiUrl(true);
         return Promise.resolve();
     }
 
-    async reload() {
-        await this._driver.navigate().refresh();
-        try { // alternative check 'bConfirmOnLeave'
-            var tmp = await this._driver.switchTo().alert();
-            if (tmp)
-                await tmp.accept();
-        } catch (error) {
-            ;
+    async reload(bSoft) {
+        if (bSoft) {
+            const response = await this._driver.executeAsyncScript(async () => {
+                const callback = arguments[arguments.length - 1];
+                await controller.reloadApplication(true);
+                callback('OK');
+            }, bEnable);
+            assert.equal(response, 'OK');
+        } else {
+            await this._driver.navigate().refresh();
+            try { // alternative check 'bConfirmOnLeave'
+                var tmp = await this._driver.switchTo().alert();
+                if (tmp)
+                    await tmp.accept();
+            } catch (error) {
+                ;
+            }
+            this._api = await this.getApiUrl(true);
         }
-        this._api = await this.getApiUrl(true);
         return Promise.resolve();
     }
 
@@ -122,6 +142,23 @@ class App {
         return Promise.resolve();
     }
 
+    async getSettings() {
+        const response = await this._driver.executeAsyncScript(async () => {
+            const callback = arguments[arguments.length - 1];
+
+            const settings = {};
+            const controller = app.getController();
+            const sc = controller.getStorageController();
+            for (var prop of ['api', 'bExperimentalFeatures', 'debug', 'bConfirmOnApply', 'bConfirmOnLeave', 'bAutomaticUpdateCache',
+                'bIndexedDB', 'IndexedDB_version', 'IndexedDB_meta', 'bAutomaticUpdateIndexedDB'])
+                settings[prop] = sc.loadLocal(prop);
+
+            callback(settings);
+        });
+        assert.notEqual(response, undefined);
+        return Promise.resolve(response);
+    }
+
     async resetLocalStorage() {
         const response = await this._driver.executeAsyncScript(async () => {
             const callback = arguments[arguments.length - 1];
@@ -132,16 +169,37 @@ class App {
         return Promise.resolve();
     }
 
+    async isDebugModeActive() {
+        const response = await this._driver.executeAsyncScript(async () => {
+            const callback = arguments[arguments.length - 1];
+
+            var bDebug;
+            const controller = app.getController();
+            const cc = controller.getConfigController();
+            const dc = cc.getDebugConfig();
+            if (dc.hasOwnProperty('bDebug'))
+                bDebug = dc['bDebug'];
+            else
+                bDebug = false;
+
+            callback(bDebug);
+        });
+        assert.notEqual(response, undefined);
+        return Promise.resolve(response);
+    }
+
     async setDebugMode(bEnable) {
         const response = await this._driver.executeAsyncScript(async () => {
             const callback = arguments[arguments.length - 1];
 
-            localStorage.setItem('debug', JSON.stringify({ bDebug: arguments[0] }));
             const controller = app.getController();
-            //controller.reloadApplication(); // will kill this script
-            await controller.initController();
-            controller.getView().initView();
+            const sc = controller.getStorageController();
+            sc.storeLocal('debug', JSON.stringify({ 'bDebug': arguments[0] }));
+
             //await controller.reloadState();
+            await controller.reloadApplication(true);
+            /*await controller.initController();
+            controller.getView().initView();*/
 
             callback('OK');
         }, bEnable);
@@ -150,18 +208,22 @@ class App {
     }
 
     async waitLoadingFinished(timeout = 10) {
-        const overlay = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': '//div[@id="overlay"]' }), 1000);
-        var display = await overlay.getCssValue('display');
-        if (display == 'none')
-            await sleep(100);
+        try {
+            const overlay = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': '//div[@id="overlay"]' }), 1000);
+            var display = await overlay.getCssValue('display');
+            if (display == 'none')
+                await sleep(100);
 
-        var i = 0;
-        while (display == 'block' && i < timeout) {
-            await sleep(1000);
-            display = await overlay.getCssValue('display');
-            i++;
+            var i = 0;
+            while (display == 'block' && i < timeout) {
+                await sleep(1000);
+                display = await overlay.getCssValue('display');
+                i++;
+            }
+            assert.equal(display, 'none');
+        } catch (error) {
+            ;
         }
-        assert.equal(display, 'none');
         return Promise.resolve();
     }
 
@@ -210,7 +272,7 @@ class App {
                 }
                 if (text === 'Login') {
                     await this.login(username, password);
-                    await sleep(1000);
+                    await this.waitLoadingFinished(10);
                 }
             }
 
@@ -270,7 +332,7 @@ class App {
     }
 
     async login2(username, password) {
-        return this.getDataService().request('POST', '/sys/auth/login', { 'user': username, 'pass': password });
+        return this.getDataService().request('POST', '/sys/auth/login', null, { 'user': username, 'pass': password });
     }
 
     async acceptPrivateCertificate() {
@@ -299,10 +361,32 @@ class App {
         return Promise.resolve();
     }
 
+    async checkSession() {
+        const response = await this._driver.executeAsyncScript(async () => {
+            const callback = arguments[arguments.length - 1];
+            const session = await app.getController().getApiController().fetchSessionInfo();
+            callback(session);
+        });
+        if (response == 'Unauthorized')
+            throw new Error('Unauthorized');
+        return Promise.resolve();
+    }
+
+    async isLoggedIn() {
+        try {
+            await this.checkSession();
+            this._bLoggedIn = true;
+        } catch (error) {
+            this._bLoggedIn = false;
+        }
+        return Promise.resolve(this._bLoggedIn);
+    }
+
     async logout() {
         this._driver.executeScript(function () {
             app.getController().getAuthController().logout();
         });
+        this._bLoggedIn = false;
         //await sleep(1000);
         //return this.reload();
         return Promise.resolve();

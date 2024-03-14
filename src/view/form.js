@@ -15,6 +15,21 @@ class Form {
         this._element = element;
     }
 
+    getElement() {
+        return this._element;
+    }
+
+    async getFormEntry(name) {
+        var entry;
+        const xpath = `./div[@class="formentry"][./div[@class="value"]/input[@name="${name}"]] |
+        ./div[@class="formentry"][./div[@class="value"]/textarea[@name="${name}"]] |
+        ./div[@class="formentry"][./div[@class="value"]/div[@class="select"]/datalist[starts-with(@id, "${name}")]]`;
+        var elements = await this._element.findElements(webdriver.By.xpath(xpath));
+        if (elements && elements.length == 1)
+            entry = elements[0];
+        return Promise.resolve(entry);
+    }
+
     async getFormInput(name) {
         //var formentries = await form.findElements(webdriver.By.xpath('./child::*'));
         // '//form/child::input[@type='password']'

@@ -25,8 +25,10 @@ describe("Root Suite", function () {
         return Promise.resolve();
     });
 
-    require('./clear.test.js');
     require('./basic.test.js');
+    require('./session.test.js');
+    require('./clear.test.js');
+    require('./common.test.js');
     require('./api.test.js');
     require('./tools.test.js');
     require('./data-service.test.js');
@@ -35,4 +37,5 @@ describe("Root Suite", function () {
     require('./top-navigation-bar.test.js');
     require('./contextmenu.test.js');
     require('./window.test.js');
+    require('./extensions.test.js');
 });

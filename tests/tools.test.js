@@ -21,11 +21,9 @@ describe('Testsuit', function () {
         }
         driver = helper.getBrowser().getDriver();
         const app = helper.getApp();
-
         await TestHelper.delay(1000);
 
         await app.prepare(config['api'], config['username'], config['password']);
-
         await TestHelper.delay(1000);
 
         const modal = await app.getWindow().getTopModal();
@@ -77,6 +75,28 @@ module.exports = test;`;
         const tools = ac.getTools();
         await tools.downloadBackup(config['host']);
         app.setHost(config['host']);
+
+        return Promise.resolve();
+    });
+
+    it('#test database backup while restartRequest', async function () {
+        this.timeout(30000);
+
+        const snippet = `async function test() {
+    controller.setRestartRequest();
+    return Promise.resolve('OK');
+};
+module.exports = test;`;
+        const app = helper.getApp();
+        const ac = app.getApiController();
+        const tools = ac.getTools();
+        var response = await tools.serverEval(snippet);
+        assert.equal(response, 'OK', 'Setting RestartRequest failed');
+
+        response = await ac.getInfo();
+        assert.equal(response['state'], 'openRestartRequest', 'Verifying RestartRequest failed');
+
+        await tools.downloadBackup();
 
         return Promise.resolve();
     });

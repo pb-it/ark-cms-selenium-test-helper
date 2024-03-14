@@ -24,7 +24,7 @@ class Tools {
 
             const ac = app.getController().getApiController();
             const client = ac.getApiClient();
-            const res = await client.request('POST', '/sys/tools/dev/eval?_format=text', { 'cmd': cmd });
+            const res = await client.request('POST', '/sys/tools/dev/eval?_format=text', null, { 'cmd': cmd });
 
             callback(res);
         }, cmd);

@@ -117,7 +117,7 @@ module.exports = test;`};
 
                 const ac = app.getController().getApiController();
                 const client = ac.getApiClient();
-                res = await client.request('POST', '/sys/tools/dev/eval?_format=text', data);
+                res = await client.request('POST', '/sys/tools/dev/eval?_format=text', null, data);
             } catch (error) {
                 console.log(error);
             } finally {
@@ -129,6 +129,10 @@ module.exports = test;`};
     }
 
     async restart(bWaitReady) {
+        const app = this._helper.getApp();
+        if (!await app.isLoggedIn())
+            throw new Error('Login required');
+
         const response = await this._driver.executeAsyncScript(async (bWaitReady) => {
             const callback = arguments[arguments.length - 1];
 
@@ -143,6 +147,7 @@ module.exports = test;`};
             }
         }, bWaitReady);
         assert.equal(response, 0, 'Restart failed');
+        assert.ok(!await app.isLoggedIn());
         return Promise.resolve();
     }
 

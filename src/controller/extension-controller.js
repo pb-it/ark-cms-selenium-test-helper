@@ -37,24 +37,17 @@ class ExtensionController {
             }
         });
 
-        var xpath = `//*[@id="sidenav"]/div[contains(@class, 'menu') and contains(@class, 'iconbar')]/div[contains(@class, 'menuitem') and @title="Extensions"]`;
-        var button;
-        button = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
-        button.click();
-
+        const app = this._helper.getApp();
+        const window = app.getWindow();
+        const sidemenu = window.getSideMenu();
+        await sidemenu.click('Extensions');
+        await sleep(1000);
+        var menu = await sidemenu.getEntry(name);
+        var bExists = (menu != null);
+        await sidemenu.click('Add');
         await sleep(1000);
 
-        xpath = `//*[@id="sidepanel"]/div/div[contains(@class, 'menu')]/div[contains(@class, 'menuitem') and starts-with(text(),"${name}")]`;
-        var tmp = await this._driver.findElements(webdriver.By.xpath(xpath));
-        var bExists = (tmp.length > 0);
-
-        xpath = `//*[@id="sidepanel"]/div/div[contains(@class, 'menu')]/div[contains(@class, 'menuitem') and starts-with(text(),"Add")]`;
-        button = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
-        button.click();
-
-        await sleep(1000);
-
-        xpath = `//input[@type="file"]`;
+        var xpath = `//input[@type="file"]`;
         var input = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
         if (input) {
             input.sendKeys(file);
@@ -77,9 +70,36 @@ class ExtensionController {
         await sleep(1000);
 
         if (bRestartIfRequested)
-            await this._helper.getApp().getApiController().processOpenRestartRequest();
+            await app.getApiController().processOpenRestartRequest();
 
         return Promise.resolve();
+    }
+
+    async deleteExtension(name, bRestartIfRequested) {
+        const app = this._helper.getApp();
+        const window = app.getWindow();
+        const sidemenu = window.getSideMenu();
+        await sidemenu.click('Extensions');
+        await sleep(1000);
+        await sidemenu.click(name);
+        await sleep(1000);
+        await sidemenu.click('Delete');
+        await sleep(1000);
+
+        await this._driver.wait(webdriver.until.alertIsPresent());
+        var alert = await this._driver.switchTo().alert();
+        var text = await alert.getText();
+        assert.equal(text.startsWith('Delete extension \'' + name + '\'?'), true);
+        await alert.accept();
+
+        await this._driver.wait(webdriver.until.alertIsPresent());
+        alert = await this._driver.switchTo().alert();
+        text = await alert.getText();
+        assert.equal(text.startsWith('Deleted extension successfully!'), true);
+        await alert.accept();
+
+        if (bRestartIfRequested)
+            await app.getApiController().processOpenRestartRequest();
     }
 }
 

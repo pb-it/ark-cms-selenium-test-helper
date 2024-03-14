@@ -8,25 +8,18 @@ class DataService {
         this._driver = this._helper.getBrowser().getDriver();
     }
 
-    async request(method, path, data) {
-        return this._driver.executeAsyncScript(async function (method, path, data) {
+    async request(method, path, options, data) {
+        return this._driver.executeAsyncScript(async function (method, path, options, data) {
             const callback = arguments[arguments.length - 1];
             var res;
             try {
                 const apiClient = app.getController().getApiController().getApiClient()
-                var str;
-                if (data) {
-                    if (typeof data !== 'string')
-                        str = HttpClient.urlEncode(data);
-                    else
-                        str = data;
-                }
-                res = await apiClient.request(method, path, str);
+                res = await apiClient.request(method, path, options, data);
             } catch (error) {
                 res = error;
             }
             callback(res);
-        }, method, path, data);
+        }, method, path, options, data);
     }
 
     async read(dataType, id, where, sort, limit, filters, search, bIgnoreCache) {

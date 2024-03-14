@@ -18,11 +18,9 @@ describe('Testsuit', function () {
         }
         driver = helper.getBrowser().getDriver();
         const app = helper.getApp();
-
         await TestHelper.delay(1000);
 
         await app.prepare(config['api'], config['username'], config['password']);
-
         await TestHelper.delay(1000);
 
         const modal = await app.getWindow().getTopModal();
@@ -90,6 +88,10 @@ describe('Testsuit', function () {
         assert.notEqual(panel, null);
         var form = await panel.getForm();
         assert.notEqual(form, null);
+        var entry = await form.getFormEntry('key');
+        assert.notEqual(entry, null);
+        //console.log(await entry.getAttribute('outerHTML'));
+        //await driver.executeScript("arguments[0].style.backgroundColor = 'lightblue';", entry);
         var input = await form.getFormInput('value');
         assert.notEqual(input, null);
         await input.clear();
@@ -102,7 +104,7 @@ describe('Testsuit', function () {
         modal = await window.getTopModal();
         assert.notEqual(modal, null);
         var element = modal.getElement();
-        /*driver.executeScript(function () {
+        /*await driver.executeScript(function () {
             arguments[0].style.backgroundColor = 'lightblue';
         }, element);*/
         await TestHelper.delay(1000);
@@ -118,6 +120,34 @@ describe('Testsuit', function () {
 
         modal = await window.getTopModal();
         assert.equal(modal, null);
+
+        return Promise.resolve();
+    });
+
+    it('#test form', async function () {
+        this.timeout(30000);
+
+        const app = helper.getApp();
+        await app.setDebugMode(true);
+        const window = app.getWindow();
+        const sidemenu = window.getSideMenu();
+        await sidemenu.click('Data');
+        await TestHelper.delay(1000);
+        await sidemenu.click('_user');
+        await TestHelper.delay(1000);
+        await sidemenu.click('Create');
+        await TestHelper.delay(1000);
+
+        const canvas = await window.getCanvas();
+        assert.notEqual(canvas, null);
+        var panels = await canvas.getPanels();
+        assert.equal(panels.length, 1);
+        var form = await panels[0].getForm();
+        assert.notEqual(form, null);
+        var entry = await form.getFormEntry('roles');
+        assert.notEqual(entry, null);
+        //console.log(await entry.getAttribute('outerHTML'));
+        //await driver.executeScript("arguments[0].style.backgroundColor = 'lightblue';", entry);
 
         return Promise.resolve();
     });
