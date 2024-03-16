@@ -31,7 +31,7 @@ class Modal {
 
     async getPanel() {
         var panel;
-        const elem = await this._element.findElement(webdriver.By.xpath('./div[@class="modal-content"]/div[@class="panel"]'));
+        const elem = await this._element.findElement(webdriver.By.xpath('./div[@class="modal-content"]/div[contains(@class, "panel")]'));
         if (elem)
             panel = new Panel(this._helper, elem);
         return Promise.resolve(panel);

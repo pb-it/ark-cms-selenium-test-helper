@@ -150,4 +150,13 @@ describe('Testsuit', function () {
 
         return Promise.resolve();
     });
+
+    it('#reload', async function () {
+        this.timeout(10000);
+
+        const app = helper.getApp();
+        await app.reload(true);
+
+        return Promise.resolve();
+    });
 });

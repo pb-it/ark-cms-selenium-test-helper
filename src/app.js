@@ -88,9 +88,9 @@ class App {
         if (bSoft) {
             const response = await this._driver.executeAsyncScript(async () => {
                 const callback = arguments[arguments.length - 1];
-                await controller.reloadApplication(true);
+                await app.getController().reloadApplication(true);
                 callback('OK');
-            }, bEnable);
+            });
             assert.equal(response, 'OK');
         } else {
             await this._driver.navigate().refresh();

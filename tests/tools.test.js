@@ -134,7 +134,9 @@ module.exports = test;`;
         await tools.restoreBackup(file);
 
         await ac.restart(true);
+        await TestHelper.delay(1000);
         await app.reload();
+        await app.waitLoadingFinished(10);
         await TestHelper.delay(1000);
         await app.login();
         await TestHelper.delay(1000);

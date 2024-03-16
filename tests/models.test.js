@@ -56,11 +56,6 @@ describe('Testsuit', function () {
         const id = await app.getModelController().addModel(model);
         console.log(id);
 
-        await app.reload();
-        await TestHelper.delay(1000);
-        await app.login();
-        await TestHelper.delay(1000);
-
         data = await ds.read('_model');
         assert.equal(data.length, length + 1, 'Adding model failed');
 
@@ -92,12 +87,6 @@ describe('Testsuit', function () {
         await TestHelper.delay(1000);
         modal = await window.getTopModal();
         assert.equal(modal, null);
-
-        await app.reload();
-        await TestHelper.delay(1000);
-        await app.login();
-        await TestHelper.delay(1000);
-
         data = await ds.read('_model');
         assert.equal(data.length, length - 1, 'Deleting model failed');
 

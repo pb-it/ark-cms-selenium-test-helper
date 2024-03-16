@@ -30,7 +30,7 @@ class ModelController {
                 res = ac.requestData('PUT', '_model?v=' + version, null, model);*/
 
                 const model = new XModel(data);
-                res = await model.uploadData();
+                res = await model.uploadData(true, true);
             } catch (error) {
                 console.log(error);
                 res = error;
