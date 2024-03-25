@@ -1,4 +1,5 @@
 //const os = require('os');
+const path = require('path');
 const { Builder, Capabilities } = require('selenium-webdriver');
 
 const sleep = require('util').promisify(setTimeout);
@@ -76,22 +77,54 @@ class Browser {
         const handle = await this._driver.getWindowHandle();
         await this._driver.switchTo().newWindow('tab');
 
-        if (this._config['name'] === 'chrome')
-            await this._driver.get("chrome://downloads/");
-        else
-            assert.fail('Function only available for Chrome browser');
+        var downloads;
+        try {
+            if (this._config['name'] === 'chrome' || this._config['name'] === 'chromium')
+                await this._driver.get("chrome://downloads/");
+            else
+                assert.fail('Function only available for Chrome browser');
 
-        await sleep(1000);
+            await sleep(1000);
 
-        const script = function () {
-            return [...document.querySelector('downloads-manager').shadowRoot.querySelector('#mainContainer > iron-list').getElementsByTagName("downloads-item")].map((el) => el.shadowRoot.getElementById("show").getAttribute("title"));
-        };
-        const webElement = await this._driver.executeScript(script);
-
-        await this._driver.close();
-        await this._driver.switchTo().window(handle);
-
-        return Promise.resolve(webElement);
+            const script = function () {
+                const res = [];
+                const items = document.querySelector('downloads-manager').shadowRoot.querySelector('#mainContainer > iron-list').getElementsByTagName('downloads-item');
+                var tmp, root, link, progress, show;
+                for (var item of items) {
+                    tmp = {};
+                    root = item.shadowRoot;
+                    link = root.getElementById('file-link');
+                    if (link)
+                        tmp['name'] = link.textContent;
+                    progress = root.getElementById('progress');
+                    if (progress)
+                        tmp['progress'] = progress.value;
+                    show = root.getElementById('show');
+                    if (show)
+                        tmp['path'] = show.getAttribute('title');
+                    res.push(tmp);
+                };
+                return res;
+            };
+            const response = await this._driver.executeScript(script);
+            var dir;
+            if (this._config['download.default_directory'])
+                dir = this._config['download.default_directory'];
+            else
+                dir = process.env.USERPROFILE + "/Downloads"; // "%USERPROFILE%/Downloads"
+            downloads = response.map(function (x) {
+                if (x['path'])
+                    return x['path'];
+                else
+                    return path.join(dir, x['name']);
+            });
+        } catch (error) {
+            console.error(error);
+        } finally {
+            await this._driver.close();
+            await this._driver.switchTo().window(handle);
+        }
+        return Promise.resolve(downloads);
     }
 
     async getUserAgent() {
