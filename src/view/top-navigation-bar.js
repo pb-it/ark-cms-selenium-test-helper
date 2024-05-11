@@ -31,6 +31,14 @@ class TopNavigationBar {
         return Promise.resolve();
     }
 
+    async openSort() {
+        const xpathSort = `//*[@id="topnav"]/div/div/div/i[contains(@class, 'fa-sort')]`;
+        const view = await this._driver.findElements(webdriver.By.xpath(xpathSort));
+        assert.equal(view.length, 1);
+        await view[0].click();
+        return Promise.resolve();
+    }
+
     async openEditView() {
         const xpathView = `//*[@id="topnav"]/div/div/div/i[contains(@class, 'fa-th')]`;
         const view = await this._driver.findElements(webdriver.By.xpath(xpathView));

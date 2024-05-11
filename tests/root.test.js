@@ -38,4 +38,5 @@ describe("Root Suite", function () {
     require('./contextmenu.test.js');
     require('./window.test.js');
     require('./extensions.test.js');
+    require('./proxy.test.js');
 });

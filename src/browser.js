@@ -32,6 +32,7 @@ class Browser {
                         this._driver = await new Builder()
                             .forBrowser('firefox')
                             .setFirefoxOptions(options)
+                            .setProxy(this._config['proxy'])
                             .build();
                         break;
                     case 'chrome':
@@ -52,6 +53,7 @@ class Browser {
                         this._driver = await new Builder()
                             .forBrowser('chrome')
                             .setChromeOptions(options)
+                            .setProxy(this._config['proxy'])
                             .build();
                 }
                 const TIMEOUT = 300000000;

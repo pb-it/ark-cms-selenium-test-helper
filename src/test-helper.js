@@ -34,6 +34,15 @@ class TestHelper {
         return Promise.resolve();
     }
 
+    async teardown() {
+        if (this._driver) {
+            await this._driver.quit();
+            this._driver = null;
+        }
+        this._app = null;
+        return Promise.resolve();
+    }
+
     getConfig() {
         return this._config;
     }
