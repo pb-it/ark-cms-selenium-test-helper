@@ -106,4 +106,39 @@ describe('Testsuit', function () {
 
         return Promise.resolve();
     });
+
+    it('#prepare', async function () {
+        this.timeout(30000);
+
+        const app = helper.getApp();
+        await app.logout();
+        await TestHelper.delay(1000);
+        assert.equal(await app.isLoggedIn(), false);
+
+        const response = await driver.executeAsyncScript(async () => {
+            const callback = arguments[arguments.length - 1];
+
+            localStorage.setItem('appVersion', '0');
+            //localStorage.removeItem('appVersion')
+            callback('OK');
+        });
+        assert.equal(response, 'OK');
+
+        await app.reload();
+        await TestHelper.delay(1000);
+        assert.equal(await app.isLoggedIn(), false);
+
+        const window = app.getWindow();
+        var modal = await window.getTopModal();
+        assert.notEqual(modal, null, 'Login modal not open');
+
+        await app.prepare(config['api'], config['username'], config['password'], true);
+        await TestHelper.delay(1000);
+        assert.equal(await app.isLoggedIn(), true);
+
+        modal = await window.getTopModal();
+        assert.equal(modal, null);
+
+        return Promise.resolve();
+    });
 });

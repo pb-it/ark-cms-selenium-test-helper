@@ -116,10 +116,14 @@ module.exports = test;`;
         console.log(file);
         assert.notEqual(file, undefined, 'Download failed');
         var i = 0;
-        while (!fs.existsSync(file) && i < 5) {
-            await TestHelper.delay(1000);
+        var bExist;
+        while (!bExist && i < 5) {
+            bExist = fs.existsSync(file);
+            if (!bExist)
+                await TestHelper.delay(1000);
             i++;
         }
+        assert.ok(bExist);
 
         await ac.clearDatabase();
 

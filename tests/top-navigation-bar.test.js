@@ -89,6 +89,23 @@ describe('Testsuit', function () {
         const text = await elements[0].getText();
         assert.equal(text, 'Pirates of the Caribbean');
 
+        await sb.openConfiguration();
+        var modal = await window.getTopModal();
+        assert.notEqual(modal, null);
+
+        await modal.closeModal();
+        modal = await window.getTopModal();
+        assert.equal(modal, null);
+
+        await sb.clear();
+        await TestHelper.delay(1000);
+        var input = await driver.findElements(webdriver.By.xpath('//form[@id="searchForm"]/div/input[@id="searchField"]'));
+        assert.equal(input.length, 1);
+        var value = await input[0].getAttribute('value');
+        assert.equal(value, '');
+        panels = await driver.findElements(webdriver.By.xpath(xpathPanel));
+        assert.equal(panels.length, 5);
+
         return Promise.resolve();
     });
 });

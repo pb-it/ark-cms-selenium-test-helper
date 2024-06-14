@@ -211,8 +211,10 @@ class App {
         try {
             const overlay = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': '//div[@id="overlay"]' }), 1000);
             var display = await overlay.getCssValue('display');
-            if (display == 'none')
+            if (display == 'none') {
                 await sleep(100);
+                display = await overlay.getCssValue('display');
+            }
 
             var i = 0;
             while (display == 'block' && i < timeout) {
@@ -227,7 +229,7 @@ class App {
         return Promise.resolve();
     }
 
-    async prepare(api, username, password) {
+    async prepare(api, username, password, bUpdate) {
         if (api) {
             const current = await this.getApiUrl(true);
             if (current !== api) {
@@ -244,12 +246,12 @@ class App {
 
         const window = this.getWindow();
         var modal = await window.getTopModal();
+        // '/html/body/div[@class="modal"]/div[@class="modal-content"]/div[@class="panel"]/div/h2'
+        const xpathHeader = './div[@class="modal-content"]/div[@class="panel"]/div/h2';
         if (modal) {
             var head;
-            const xpath = '/html/body/div[@class="modal"]/div[@class="modal-content"]/div[@class="panel"]/div/h2';
             try {
-                //head = this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
-                head = await this._driver.findElement(webdriver.By.xpath(xpath));
+                head = await modal.getElement().findElement(webdriver.By.xpath(xpathHeader));
             } catch (error) {
                 ;
             }
@@ -263,7 +265,7 @@ class App {
 
                     head = null;
                     try {
-                        head = await this._driver.findElement(webdriver.By.xpath(xpath));
+                        head = await modal.getElement().findElement(webdriver.By.xpath(xpathHeader));
                     } catch (error) {
                         ;
                     }
@@ -273,6 +275,7 @@ class App {
                 if (text === 'Login') {
                     await this.login(username, password);
                     await this.waitLoadingFinished(10);
+                    await sleep(1000);
                 }
             }
 
@@ -283,23 +286,78 @@ class App {
                 alert = null;
             }
             if (!alert) {
-                modal = await window.getTopModal();
-                if (modal) {
-                    var button;
-                    try {
-                        button = await modal.findElement(webdriver.By.xpath('//button[text()="Skip"]')); // close tutorial modal
-                    } catch (error) {
-                        ;
-                    }
-                    if (!button) {
+                var bCheck = true;
+                var head;
+                var text;
+                var button;
+                while (bCheck) {
+                    bCheck = false;
+                    modal = await window.getTopModal();
+                    if (modal) {
                         try {
-                            button = await modal.findElement(webdriver.By.xpath('//button[text()="OK"]')); // close changelog modal
+                            head = await modal.getElement().findElement(webdriver.By.xpath(xpathHeader));
                         } catch (error) {
                             ;
                         }
+                        if (head) {
+                            text = await head.getText();
+                            if (text === 'Cache') {
+                                try {
+                                    if (bUpdate) {
+                                        button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Update"]')); // update cache
+                                        if (button) {
+                                            await button.click();
+                                            await this.waitLoadingFinished(600);
+                                            try { // info dialog popup may dispose alert
+                                                await this._driver.wait(webdriver.until.alertIsPresent(), 1000);
+                                                var alert = await this._driver.switchTo().alert();
+                                                text = await alert.getText();
+                                                if (text == 'Updated successfully!')
+                                                    await alert.accept();
+                                                await this.waitLoadingFinished(10);
+                                            } catch (error) {
+                                                ;
+                                            }
+                                            await sleep(1000);
+                                            bCheck = true;
+                                        }
+                                    } else {
+                                        button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Skip"]'));
+                                        if (button) {
+                                            await button.click();
+                                            await this.waitLoadingFinished(10);
+                                            await sleep(1000);
+                                            bCheck = true;
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error(error);
+                                }
+                            } else if (text === 'Info') {
+                                try {
+                                    button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="OK"]')); // close changelog modal
+                                    if (button) {
+                                        await button.click();
+                                        await sleep(1000);
+                                        bCheck = true;
+                                    }
+                                } catch (error) {
+                                    ;
+                                }
+                            } else { // text === 'Welcome'
+                                try {
+                                    button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Skip"]')); // close tutorial modal
+                                    if (button) {
+                                        await button.click();
+                                        await sleep(1000);
+                                        bCheck = true;
+                                    }
+                                } catch (error) {
+                                    ;
+                                }
+                            }
+                        }
                     }
-                    if (button)
-                        await button.click();
                 }
             }
         }

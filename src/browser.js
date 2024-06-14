@@ -1,4 +1,4 @@
-//const os = require('os');
+const os = require('os');
 const path = require('path');
 const { Builder, Capabilities } = require('selenium-webdriver');
 
@@ -113,13 +113,16 @@ class Browser {
             if (this._config['download.default_directory'])
                 dir = this._config['download.default_directory'];
             else
-                dir = process.env.USERPROFILE + "/Downloads"; // "%USERPROFILE%/Downloads"
-            downloads = response.map(function (x) {
-                if (x['path'])
-                    return x['path'];
-                else
-                    return path.join(dir, x['name']);
-            });
+                dir = os.homedir() + "/Downloads"; // "%USERPROFILE%/Downloads"
+            if (dir) {
+                downloads = response.map(function (x) {
+                    if (x['path'])
+                        return x['path'];
+                    else
+                        return path.join(dir, x['name']);
+                });
+            } else
+                assert.fail('Could not determine download location');
         } catch (error) {
             console.error(error);
         } finally {
