@@ -49,6 +49,14 @@ class Tools {
         assert.notEqual(api, null);
         await this._driver.get(api + '/sys/tools/db/backup');
 
+        try { // confirm leave
+            var tmp = await this._driver.switchTo().alert();
+            if (tmp)
+                await tmp.accept();
+        } catch (error) {
+            ;
+        }
+
         const xpath = `/html/body`;
         const body = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
         const text = await body.getText();
