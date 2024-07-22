@@ -3,8 +3,6 @@ const TestHelper = require('../src/test-helper.js');
 
 describe("Root Suite", function () {
 
-    let driver;
-
     before('#setup', async function () {
         this.timeout(10000);
 
@@ -12,7 +10,6 @@ describe("Root Suite", function () {
             global.helper = new TestHelper();
             await helper.setup(config);
         }
-        driver = helper.getBrowser().getDriver();
 
         global.allPassed = true;
 
@@ -20,8 +17,10 @@ describe("Root Suite", function () {
     });
 
     after('#teardown', async function () {
+        this.timeout(10000);
+
         if (allPassed)
-            await driver.quit();
+            await helper.getBrowser().teardown();
         return Promise.resolve();
     });
 

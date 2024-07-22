@@ -35,8 +35,8 @@ class TestHelper {
     }
 
     async teardown() {
-        if (this._driver) {
-            await this._driver.quit();
+        if (this._browser && this._driver) {
+            await this._browser.teardown();
             this._driver = null;
         }
         this._app = null;

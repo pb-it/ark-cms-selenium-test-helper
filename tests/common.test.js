@@ -151,6 +151,45 @@ describe('Testsuit', function () {
         return Promise.resolve();
     });
 
+    it('#prepare', async function () {
+        this.timeout(30000);
+
+        if (config['host'] === 'http://localhost:4000') {
+            const testConfig = { ...config };
+            testConfig['host'] = 'http://127.0.0.1:4000';
+            testConfig['api'] = 'https://127.0.0.1:3002';
+
+            await helper.teardown();
+            await helper.setup(testConfig);
+
+            driver = helper.getBrowser().getDriver();
+            var app = helper.getApp();
+            await TestHelper.delay(1000);
+
+            await app.prepare(testConfig['api'], testConfig['username'], testConfig['password']);
+            await app.waitLoadingFinished(10);
+
+            var modal = await app.getWindow().getTopModal();
+            assert.equal(modal, null);
+
+            await helper.teardown();
+            await helper.setup(config);
+
+            driver = helper.getBrowser().getDriver();
+            app = helper.getApp();
+            await TestHelper.delay(1000);
+
+            await app.prepare(config['api'], config['username'], config['password']);
+            await app.waitLoadingFinished(10);
+
+            modal = await app.getWindow().getTopModal();
+            assert.equal(modal, null);
+        } else
+            this.skip();
+
+        return Promise.resolve();
+    });
+
     it('#reload', async function () {
         this.timeout(10000);
 

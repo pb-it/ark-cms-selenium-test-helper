@@ -264,13 +264,17 @@ class App {
                     await sleep(1000);
 
                     head = null;
-                    try {
-                        head = await modal.getElement().findElement(webdriver.By.xpath(xpathHeader));
-                    } catch (error) {
-                        ;
+                    text = null;
+                    modal = await window.getTopModal();
+                    if (modal) {
+                        try {
+                            head = await modal.getElement().findElement(webdriver.By.xpath(xpathHeader));
+                        } catch (error) {
+                            ;
+                        }
+                        if (head)
+                            text = await head.getText();
                     }
-                    if (head)
-                        text = await head.getText();
                 }
                 if (text === 'Login') {
                     await this.login(username, password);

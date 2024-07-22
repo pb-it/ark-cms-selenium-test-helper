@@ -71,11 +71,17 @@ class Browser {
         return Promise.resolve(this._driver);
     }
 
+    async teardown() {
+        await this._driver.quit();
+        this._bSetupDone = false;
+        return Promise.resolve();
+    }
+
     getDriver() {
         return this._driver;
     }
 
-    async getDownloads() {
+    async getDownloads(bWaitFinished) {
         const handle = await this._driver.getWindowHandle();
         await this._driver.switchTo().newWindow('tab');
 
@@ -88,27 +94,48 @@ class Browser {
 
             await sleep(1000);
 
-            const script = function () {
+            const response = await this._driver.executeAsyncScript(async (bWaitFinished) => {
+                const callback = arguments[arguments.length - 1];
+
+                function sleep(milliseconds) {
+                    return new Promise(resolve => setTimeout(resolve, milliseconds));
+                }
+
                 const res = [];
-                const items = document.querySelector('downloads-manager').shadowRoot.querySelector('#mainContainer > iron-list').getElementsByTagName('downloads-item');
+                var items;
                 var tmp, root, link, progress, show;
-                for (var item of items) {
-                    tmp = {};
-                    root = item.shadowRoot;
-                    link = root.getElementById('file-link');
-                    if (link)
-                        tmp['name'] = link.textContent;
-                    progress = root.getElementById('progress');
-                    if (progress)
-                        tmp['progress'] = progress.value;
-                    show = root.getElementById('show');
-                    if (show)
-                        tmp['path'] = show.getAttribute('title');
-                    res.push(tmp);
-                };
-                return res;
-            };
-            const response = await this._driver.executeScript(script);
+                var iCount = 0;
+                var bProgress = true;
+                do {
+                    bProgress = false;
+                    if (iCount > 0)
+                        await sleep(1000);
+                    items = document.querySelector('downloads-manager').shadowRoot.querySelector('#mainContainer > iron-list').getElementsByTagName('downloads-item');
+                    for (var item of items) {
+                        tmp = {};
+                        root = item.shadowRoot;
+                        link = root.getElementById('file-link');
+                        if (link)
+                            tmp['name'] = link.textContent;
+                        progress = root.getElementById('progress');
+                        if (progress) {
+                            tmp['progress'] = progress.value;
+                            if (progress.value < 100)
+                                bProgress = true;
+                        }
+                        show = root.getElementById('show');
+                        if (show)
+                            tmp['path'] = show.getAttribute('title');
+                        res.push(tmp);
+                    };
+                    iCount++;
+                    /*console.log(iCount);
+                    if (iCount > 20)
+                        debugger;*/
+                } while (bWaitFinished && bProgress);
+
+                callback(res);
+            }, bWaitFinished);
             var dir;
             if (this._config['download.default_directory'])
                 dir = this._config['download.default_directory'];

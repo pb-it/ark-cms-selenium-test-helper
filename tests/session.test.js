@@ -60,6 +60,22 @@ describe('Testsuit', function () {
         await app.login();
         await TestHelper.delay(1000);
         modal = await window.getTopModal();
+        if (modal) {
+            var head;
+            try {
+                const xpathHeader = './div[@class="modal-content"]/div[@class="panel"]/div/h2';
+                head = await modal.getElement().findElement(webdriver.By.xpath(xpathHeader));
+            } catch (error) {
+                ;
+            }
+            if (head) {
+                var text = await head.getText();
+                if (['Cache', 'Info', 'Welcome'].includes(text)) {
+                    await modal.closeModal();
+                    modal = await window.getTopModal();
+                }
+            }
+        }
         assert.equal(modal, null);
         assert.equal(await app.isLoggedIn(), true);
 
