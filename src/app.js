@@ -79,7 +79,15 @@ class App {
             url = this._host + path;
         else
             url = this._host;
-        await this._driver.get(url);
+        try {
+            await this._driver.get(url);
+        } catch (error) {
+            if (error['name'] && error['name'] === 'WebDriverError' &&
+                error['message'] && error['message'].startsWith('unknown error: net::ERR_CONNECTION_REFUSED\n'))
+                throw new Error(`Host '${url}' refused connection`);
+            else
+                throw error;
+        }
         this._api = await this.getApiUrl(true);
         return Promise.resolve();
     }

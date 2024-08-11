@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [0.1.24-beta](https://github.com/pb-it/ark-cms-selenium-test-helper/releases/tag/0.1.24-beta) (2024-08-11)
+
+* Added BrowserMob Proxy support (BMP client)
+
 
 ## [0.1.1-beta](https://github.com/pb-it/ark-cms-selenium-test-helper/releases/tag/0.1.1-beta) (2023-11-13)
 

@@ -1,6 +1,7 @@
 const os = require('os');
 const path = require('path');
 const { Builder, Capabilities } = require('selenium-webdriver');
+const selProxy = require('selenium-webdriver/proxy');
 
 const sleep = require('util').promisify(setTimeout);
 
@@ -10,16 +11,23 @@ const sleep = require('util').promisify(setTimeout);
 class Browser {
 
     _config;
-    _bSetupDone = false;
+    _proxy;
     _driver;
 
     constructor(config) {
         this._config = config;
     }
 
+    setProxy(config) {
+        this._proxy = selProxy.manual(config);
+    }
+
     async setupDriver() {
-        if (!this._bSetupDone) {
+        if (!this._driver) {
             if (this._config) {
+                if (this._config['proxy'])
+                    this._proxy = selProxy.manual(this._config['proxy']);
+
                 switch (this._config['name']) {
                     case 'firefox':
                         //driver = new Builder().withCapabilities(Capabilities.firefox()).build();
@@ -32,7 +40,7 @@ class Browser {
                         this._driver = await new Builder()
                             .forBrowser('firefox')
                             .setFirefoxOptions(options)
-                            .setProxy(this._config['proxy'])
+                            .setProxy(this._proxy)
                             .build();
                         break;
                     case 'chrome':
@@ -53,7 +61,7 @@ class Browser {
                         this._driver = await new Builder()
                             .forBrowser('chrome')
                             .setChromeOptions(options)
-                            .setProxy(this._config['proxy'])
+                            .setProxy(this._proxy)
                             .build();
                 }
                 const TIMEOUT = 300000000;
@@ -64,8 +72,6 @@ class Browser {
                 });
 
                 await this._driver.manage().window().maximize();
-
-                this._bSetupDone = true;
             }
         }
         return Promise.resolve(this._driver);
@@ -73,7 +79,7 @@ class Browser {
 
     async teardown() {
         await this._driver.quit();
-        this._bSetupDone = false;
+        this._driver = null;
         return Promise.resolve();
     }
 

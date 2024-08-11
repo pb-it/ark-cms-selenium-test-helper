@@ -1,6 +1,6 @@
 {
     "name": "@pb-it/ark-cms-selenium-test-helper",
-    "version": "0.1.23-beta",
+    "version": "0.1.24-beta",
     "description": "Helper for running selenium tests on ArkCMS",
     "main": "index.js",
     "scripts": {
@@ -12,7 +12,9 @@
         "test:window": "mocha --bail tests/window.test.js",
         "test:api": "mocha --bail tests/api.test.js",
         "test:models": "mocha --bail tests/models.test.js",
-        "test:tools": "mocha --bail tests/tools.test.js"
+        "test:content": "mocha --bail tests/content.test.js",
+        "test:tools": "mocha --bail tests/tools.test.js",
+        "test:proxy": "mocha --bail tests/proxy.test.js"
     },
     "repository": {
         "type": "git",
@@ -28,10 +30,10 @@
     },
     "homepage": "https://github.com/pb-it/ark-cms-selenium-test-helper#readme",
     "dependencies": {
-        "selenium-webdriver": "^4.20.0"
+        "selenium-webdriver": "^4.23.0",
+        "tree-kill": "^1.2.2"
     },
     "devDependencies": {
-        "browsermob-proxy-client": "^0.1.2",
-        "mocha": "^10.4.0"
+        "mocha": "^10.7.3"
     }
 }

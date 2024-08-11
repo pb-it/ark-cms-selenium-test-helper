@@ -20,7 +20,8 @@ describe("Root Suite", function () {
         this.timeout(10000);
 
         if (allPassed)
-            await helper.getBrowser().teardown();
+            await helper.teardown();
+
         return Promise.resolve();
     });
 
@@ -32,6 +33,7 @@ describe("Root Suite", function () {
     require('./tools.test.js');
     require('./data-service.test.js');
     require('./models.test.js');
+    require('./content.test.js');
     require('./sidemenu.test.js');
     require('./top-navigation-bar.test.js');
     require('./contextmenu.test.js');

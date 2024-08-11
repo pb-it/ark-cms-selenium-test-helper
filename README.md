@@ -1,4 +1,4 @@
-# wing-cms
+# ArkCMS Selenium Test Helper
 
 [![Node.js version](https://img.shields.io/badge/Node.js->=12-brightgreen.svg)](https://nodejs.org)
 [![License](https://img.shields.io/github/license/pb-it/ark-cms-selenium-test-helper?label=license&style=yellow)](https://github.com/pb-it/ark-cms-selenium-test-helper/blob/main/LICENSE)

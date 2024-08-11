@@ -1,88 +1,95 @@
-const selProxy = require('selenium-webdriver/proxy');
-const BrowserMob = require('browsermob-proxy-client');
+const path = require('path');
+const fs = require('fs');
 
 const assert = require('assert');
 const webdriver = require('selenium-webdriver');
 //const test = require('selenium-webdriver/testing');
 
+const itif = (condition) => condition ? it : it.skip;
+
 const config = require('./config/test-config.js');
 const TestHelper = require('../src/test-helper.js');
 
-describe('Testsuit', function () {
+describe('Testsuit - Proxy', function () {
 
+    let bSetup;
     let driver;
 
-    /*before('#setup', async function () {
+    before('#setup', async function () {
         this.timeout(30000);
 
-        return Promise.resolve();
-    });*/
+        if (config['proxy']) {
+            if (!global.allPassed)
+                global.allPassed = true;
 
-    /*after('#teardown', async function () {
-        return driver.quit();
-    });*/
+            if (!global.helper) {
+                global.helper = new TestHelper();
+                bSetup = true;
+            }/* else {
+            //await helper.teardown();
+            //await helper.getBrowser().teardown();
+        }*/
+
+            const requiredArgs = ['proxy-bypass-list=<-loopback>', 'ignore-certificate-errors'];
+            //const requiredArgs = ['proxy-bypass-list=<-loopback>', 'ignore-certificate-errors', 'disable-web-security', 'allow-insecure-localhost', 'allow-running-insecure-content']
+            if (config['browser']['arguments']) {
+                var bFound;
+                for (var arg of requiredArgs) {
+                    bFound = false;
+                    for (var a of config['browser']['arguments']) {
+                        if (a === arg) {
+                            bFound = true;
+                            break;
+                        }
+                    }
+                    if (!bFound)
+                        config['browser']['arguments'].push(arg);
+                }
+            } else
+                config['browser']['arguments'] = requiredArgs;
+
+            await helper.setup(config, true);
+            driver = helper.getBrowser().getDriver();
+            const app = helper.getApp();
+            await TestHelper.delay(1000);
+
+            await app.prepare(config['api'], config['username'], config['password']);
+            await TestHelper.delay(1000);
+
+            const modal = await app.getWindow().getTopModal();
+            assert.equal(modal, null);
+        }
+
+        return Promise.resolve();
+    });
+
+    after('#teardown', async function () {
+        if (helper && bSetup && global.allPassed) {
+            await helper.teardown();
+            global.helper = null;
+        }
+        return Promise.resolve();
+        //return driver.quit();
+    });
 
     afterEach(function () {
         if (global.allPassed)
-            allPassed = allPassed && (this.currentTest.state === 'passed');
+            allPassed = allPassed && (this.currentTest.state === 'passed'); // || this.currentTest.state === 'pending'
     });
 
-    xit('#proxy', async function () {
+    /**
+     * 'ignore-certificate-errors'
+     */
+    itif(config['proxy'])('#proxy example.com', async function () {
         this.timeout(30000);
 
-        const conf = {
-            browserMob: { // *optional* details on where browsermob is running
-                host: 'localhost',
-                port: 8080,
-                protocol: 'http'
-            },
-            proxy: { // *optional*
-                trustAllServers: true,
-                port: 8081,
-                //bindAddress: `127.0.0.1`
-            }
-        };
-        const defaultProxy = BrowserMob.createClient(conf);
-        await defaultProxy.start();
+        const proxy = helper.getProxy();
+        await proxy.startHar();
 
-        if (global.helper)
-            await helper.teardown();
-        else
-            global.helper = new TestHelper();
-
-        if (config['browser']['arguments']) {
-            var bFound = false;
-            for (var arg of config['browser']['arguments']) {
-                if (arg === 'ignore-certificate-errors') {
-                    bFound = true;
-                    break;
-                }
-            }
-            if (!bFound)
-                config['browser']['arguments'].push('ignore-certificate-errors');
-        } else
-            config['browser']['arguments'] = ['ignore-certificate-errors', 'disable-web-security', 'allow-insecure-localhost', 'allow-running-insecure-content'];
-        config['browser']['proxy'] = selProxy.manual({
-            http: 'localhost:' + defaultProxy.proxy.port,
-            https: 'localhost:' + defaultProxy.proxy.port
-        });
-
-        await helper.setup(config);
-        driver = helper.getBrowser().getDriver();
-        await TestHelper.delay(1000);
-
-        const opt = {
-            'captureHeaders': true,
-            'captureContent': true,
-            'captureBinaryContent': true
-        };
-        await defaultProxy.createHar(opt);
-
-        //await driver.get(config['host']);
         await driver.get('https://example.com/');
         await TestHelper.delay(1000);
 
-        const har = await defaultProxy.getHar();
+        const har = await proxy.endHar();
         //console.log(har);
         assert.equal(har['log']['pages'].length, 1);
         //console.log(har['log']['entries'].length);
@@ -90,18 +97,48 @@ describe('Testsuit', function () {
         for (var ent of har['log']['entries']) {
             //console.log(ent);
             //console.log(ent['request']['url']);
-            if (ent['request']['url'] === 'https://example.com/') { // config['host']
+            if (ent['request']['url'] === 'https://example.com/') {
                 bFound = true;
                 break;
             }
         }
         assert.ok(bFound);
 
-        await defaultProxy.closeProxies();
-        await defaultProxy.end();
+        return Promise.resolve();
+    });
 
-        await helper.teardown();
-        global.helper = null;
+    /**
+     * 'proxy-bypass-list=<-loopback>'
+     */
+    itif(config['proxy'])('#proxy host/localhost', async function () {
+        this.timeout(30000);
+
+        const proxy = helper.getProxy();
+        const opt = {
+            'captureHeaders': true,
+            'captureContent': true,
+            'captureBinaryContent': true
+        };
+        await proxy.startHar(opt);
+
+        await driver.get(config['host']);
+        await TestHelper.delay(1000);
+
+        const har = await proxy.endHar();
+        //console.log(har);
+        fs.writeFileSync(path.resolve(__dirname, `./tmp/har.json`), JSON.stringify(har, null, '\t'));
+        assert.equal(har['log']['pages'].length, 1);
+        //console.log(har['log']['entries'].length);
+        var bFound = false;
+        for (var ent of har['log']['entries']) {
+            //console.log(ent);
+            //console.log(ent['request']['url']);
+            if (ent['request']['url'] === config['host'] + '/') {
+                bFound = true;
+                break;
+            }
+        }
+        assert.ok(bFound);
 
         return Promise.resolve();
     });

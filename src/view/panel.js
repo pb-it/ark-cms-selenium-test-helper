@@ -35,7 +35,11 @@ class Panel {
             elements = await this._element.findElements(webdriver.By.xpath(`.//button[text()="${text}" and not(ancestor::div[@class="formentry"])]`));
         else
             elements = await this._element.findElements(webdriver.By.xpath(`.//button[text()="${text}"]`));
-        if (elements && elements.length == 1)
+        if (!elements || elements.length !== 1) {
+            if (text == 'Confirm') // confirm on entry delete
+                elements = await this._element.findElements(webdriver.By.xpath(`.//input[@type="submit" and @name="confirm"]`));
+        }
+        if (elements && elements.length === 1)
             button = elements[0];
         return Promise.resolve(button);
     }

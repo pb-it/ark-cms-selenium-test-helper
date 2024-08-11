@@ -5,6 +5,8 @@ package-lock.json
 
 tests/config/test-config.js
 
+*.log
+
 !.gitignore
 !.gitattributes
 !.npmrc

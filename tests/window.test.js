@@ -5,7 +5,7 @@ const webdriver = require('selenium-webdriver');
 const config = require('./config/test-config.js');
 const TestHelper = require('../src/test-helper.js');
 
-describe('Testsuit', function () {
+describe('Testsuit - Window', function () {
 
     let driver;
 
@@ -80,7 +80,7 @@ describe('Testsuit', function () {
         panel = await modal.getPanel();
         assert.notEqual(panel, null);
         var button = await panel.getButton('Edit');
-        assert.notEqual(panel, null);
+        assert.notEqual(button, null);
         await button.click();
         await TestHelper.delay(1000);
 
