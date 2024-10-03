@@ -205,7 +205,7 @@ class App {
             sc.storeLocal('debug', JSON.stringify({ 'bDebug': arguments[0] }));
 
             //await controller.reloadState();
-            await controller.reloadApplication(true);
+            await controller.reloadApplication(true); // blocking if modal got opened (outdated cache)
             /*await controller.initController();
             controller.getView().initView();*/
 
@@ -237,7 +237,7 @@ class App {
         return Promise.resolve();
     }
 
-    async prepare(api, username, password, bUpdate) {
+    async prepare(api, username, password, bUpdate = true) {
         if (api) {
             const current = await this.getApiUrl(true);
             if (current !== api) {
@@ -380,23 +380,35 @@ class App {
         const window = this.getWindow();
         var modal = await window.getTopModal();
         if (modal) {
-            var input = await modal.findElement(webdriver.By.css('input[id="username"]'));
-            if (input) {
-                await input.clear();
-                if (!username)
-                    username = 'admin';
-                await input.sendKeys(username);
+            const xpathHeader = './div[@class="modal-content"]/div[@class="panel"]/div/h2';
+            var head;
+            try {
+                head = await modal.getElement().findElement(webdriver.By.xpath(xpathHeader));
+            } catch (error) {
+                ;
             }
-            input = await modal.findElement(webdriver.By.css('input[id="password"]'));
-            if (input) {
-                await input.clear();
-                if (!password)
-                    password = 'admin';
-                await input.sendKeys(password);
+            if (head) {
+                var text = await head.getText();
+                if (text === 'Login') {
+                    var input = await modal.findElement(webdriver.By.css('input[id="username"]'));
+                    if (input) {
+                        await input.clear();
+                        if (!username)
+                            username = 'admin';
+                        await input.sendKeys(username);
+                    }
+                    input = await modal.findElement(webdriver.By.css('input[id="password"]'));
+                    if (input) {
+                        await input.clear();
+                        if (!password)
+                            password = 'admin';
+                        await input.sendKeys(password);
+                    }
+                    var button = await modal.findElement(webdriver.By.xpath('.//button[text()="Login"]'));
+                    if (button)
+                        await button.click();
+                }
             }
-            var button = await modal.findElement(webdriver.By.xpath('//button[text()="Login"]'));
-            if (button)
-                await button.click();
         }
         return Promise.resolve();
     }

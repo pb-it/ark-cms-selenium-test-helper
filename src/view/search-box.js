@@ -34,15 +34,20 @@ class SearchBox {
     async search(str) {
         if (!this._input)
             await this.init();
+        await this._input.clear();
         await this._input.sendKeys(str);
         await this._button.click();
         return Promise.resolve();
     }
 
     async clear() {
-        /*if (!this._input)
+        if (!this._input)
             await this.init();
-        await this._input.clear();*/
+        await this._input.clear();
+        return Promise.resolve();
+    }
+
+    async pressClearButton() {
         const button = await this._driver.findElements(webdriver.By.xpath(
             `//form[@id="searchForm"]/div/div[@class="iconBox"]/div[contains(@class, 'btn')]/i[contains(@class, 'fa-xmark')]`));
         assert.equal(button.length, 1);

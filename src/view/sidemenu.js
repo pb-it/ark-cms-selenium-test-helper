@@ -1,6 +1,8 @@
 const assert = require('assert');
 const webdriver = require('selenium-webdriver');
 
+const Panel = require('./panel.js');
+
 class SideMenu {
 
     _helper
@@ -55,6 +57,21 @@ class SideMenu {
             await button.click();
         this._breadcrumb.push(title);
         return Promise.resolve();
+    }
+
+    async getPanel() {
+        var panel;
+        const xpath = `//*[@id="sidepanel"]/div/div[contains(@class, 'panel')]`;
+        const elements = await this._driver.findElements(webdriver.By.xpath(xpath));
+        if (elements && elements.length == 1)
+            panel = new Panel(this._helper, elements[0]);
+        return Promise.resolve(panel);
+    }
+
+    async close() {
+        const body = await this._driver.findElement(webdriver.By.xpath('/html/body'));
+        assert.notEqual(body, null);
+        return body.click();
     }
 }
 
