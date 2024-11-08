@@ -107,16 +107,34 @@ class Browser {
                     return new Promise(resolve => setTimeout(resolve, milliseconds));
                 }
 
+                var tmp;
+                var version;
+                var parts = navigator.userAgent.split(/\s+/);
+                if (parts.length > 1) {
+                    tmp = parts[parts.length - 2];
+                    if (tmp.startsWith('Chrome/')) {
+                        tmp = tmp.substring(7);
+                        parts = tmp.split('.');
+                        version = parseInt(parts[0]);
+                    }
+                }
+
+                var selector;
+                if (version && version >= 130)
+                    selector = '#mainContainer > cr-infinite-list';
+                else
+                    selector = '#mainContainer > iron-list';
+
                 const res = [];
                 var items;
-                var tmp, root, link, progress, show;
+                var root, link, progress, show;
                 var iCount = 0;
                 var bProgress = true;
                 do {
                     bProgress = false;
                     if (iCount > 0)
                         await sleep(1000);
-                    items = document.querySelector('downloads-manager').shadowRoot.querySelector('#mainContainer > iron-list').getElementsByTagName('downloads-item');
+                    items = document.querySelector('downloads-manager').shadowRoot.querySelector(selector).getElementsByTagName('downloads-item');
                     for (var item of items) {
                         tmp = {};
                         root = item.shadowRoot;
@@ -166,6 +184,8 @@ class Browser {
     }
 
     async getUserAgent() {
+        /*const details = await driver.sendAndGetDevToolsCommand('Browser.getVersion', {});
+        return details['userAgent'];*/
         return this._driver.executeScript(
             function () {
                 return navigator.userAgent;

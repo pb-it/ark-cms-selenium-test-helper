@@ -60,7 +60,7 @@ class Tools {
         const xpath = `/html/body`;
         const body = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': xpath }), 1000);
         const text = await body.getText();
-        assert.equal(text, '');
+        assert.ok(!text || text == '!'); // '!' when openRestartRequest active
 
         await this._driver.close();
         await this._driver.switchTo().window(handle);

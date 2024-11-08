@@ -34,6 +34,9 @@ describe('Testsuit', function () {
     it('#check userAgent', async function () {
         this.timeout(10000);
 
+        const userAgent = await helper.getBrowser().getUserAgent();
+        console.log(userAgent);
+
         var ua;
         const arguments = helper.getConfig()['browser']['arguments'];
         if (arguments && arguments.length > 0) {
@@ -44,12 +47,19 @@ describe('Testsuit', function () {
                 }
             }
         }
-        const userAgent = await helper.getBrowser().getUserAgent();
-        console.log(userAgent);
         if (ua)
             assert.equal(userAgent, ua, 'UserAgent missmatch');
         else
             this.skip();
+
+        return Promise.resolve();
+    });
+
+    xit('#check userAgent #2', async function () {
+        this.timeout(10000);
+
+        const details = await driver.sendAndGetDevToolsCommand('Browser.getVersion', {});
+        console.log(details);
 
         return Promise.resolve();
     });
