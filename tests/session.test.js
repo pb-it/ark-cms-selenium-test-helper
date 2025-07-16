@@ -148,7 +148,7 @@ describe('Testsuit', function () {
         var modal = await window.getTopModal();
         assert.notEqual(modal, null, 'Login modal not open');
 
-        await app.prepare(config['api'], config['username'], config['password'], true);
+        await app.prepare(config['api'], config['username'], config['password'], true, true);
         await TestHelper.delay(1000);
         assert.equal(await app.isLoggedIn(), true);
 

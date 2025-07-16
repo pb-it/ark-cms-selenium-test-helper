@@ -128,6 +128,28 @@ module.exports = test;`};
         return Promise.resolve();
     }
 
+    async reloadModels(bForceMigration) {
+        const app = this._helper.getApp();
+        if (!await app.isLoggedIn())
+            throw new Error('Login required');
+
+        const response = await this._driver.executeAsyncScript(async (bForceMigration) => {
+            const callback = arguments[arguments.length - 1];
+
+            var res;
+            try {
+                const ac = app.getController().getApiController();
+                res = await ac.reloadModels(bForceMigration);
+            } catch (error) {
+                console.log(error);
+            } finally {
+                callback(res);
+            }
+        }, bForceMigration);
+        assert.equal(response, 'OK', 'Reload failed');
+        return Promise.resolve();
+    }
+
     async restart(bWaitReady) {
         const app = this._helper.getApp();
         if (!await app.isLoggedIn())

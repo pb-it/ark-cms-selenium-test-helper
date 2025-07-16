@@ -237,7 +237,7 @@ class App {
         return Promise.resolve();
     }
 
-    async prepare(api, username, password, bUpdate = true) {
+    async prepare(api, username, password, bCheck = true, bUpdate = true) {
         if (api) {
             const current = await this.getApiUrl(true);
             if (current !== api) {
@@ -291,83 +291,86 @@ class App {
                 }
             }
 
-            var alert;
-            try {
-                alert = await this._driver.switchTo().alert();
-            } catch (error) {
-                alert = null;
-            }
-            if (!alert) {
-                var bCheck = true;
-                var head;
-                var text;
-                var button;
-                while (bCheck) {
-                    bCheck = false;
-                    modal = await window.getTopModal();
-                    if (modal) {
-                        try {
-                            head = await modal.getElement().findElement(webdriver.By.xpath(xpathHeader));
-                        } catch (error) {
-                            ;
-                        }
-                        if (head) {
-                            text = await head.getText();
-                            if (text === 'Cache') {
-                                try {
-                                    if (bUpdate) {
-                                        button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Update"]')); // update cache
-                                        if (button) {
-                                            await button.click();
-                                            await this.waitLoadingFinished(600);
-                                            try { // info dialog popup may dispose alert
-                                                await this._driver.wait(webdriver.until.alertIsPresent(), 1000);
-                                                var alert = await this._driver.switchTo().alert();
-                                                text = await alert.getText();
-                                                if (text == 'Updated successfully!')
-                                                    await alert.accept();
-                                                await this.waitLoadingFinished(10);
-                                            } catch (error) {
-                                                ;
-                                            }
-                                            await sleep(1000);
-                                            bCheck = true;
-                                        }
-                                    } else {
-                                        button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Skip"]'));
-                                        if (button) {
-                                            await button.click();
-                                            await this.waitLoadingFinished(10);
-                                            await sleep(1000);
-                                            bCheck = true;
-                                        }
-                                    }
-                                } catch (error) {
-                                    console.error(error);
-                                }
-                            } else if (text === 'Info') {
-                                try {
-                                    button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="OK"]')); // close changelog modal
-                                    if (button) {
-                                        await button.click();
-                                        await sleep(1000);
-                                        bCheck = true;
-                                    }
-                                } catch (error) {
-                                    ;
-                                }
-                            } else { // text === 'Welcome'
-                                try {
-                                    button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Skip"]')); // close tutorial modal
-                                    if (button) {
-                                        await button.click();
-                                        await sleep(1000);
-                                        bCheck = true;
-                                    }
-                                } catch (error) {
-                                    ;
-                                }
+            if (bCheck) {
+                var alert;
+                try {
+                    alert = await this._driver.switchTo().alert();
+                } catch (error) {
+                    alert = null;
+                }
+                if (!alert) {
+                    var head;
+                    var text;
+                    var button;
+                    while (bCheck) {
+                        bCheck = false;
+                        head = null;
+                        modal = await window.getTopModal();
+                        if (modal) {
+                            try {
+                                head = await modal.getElement().findElement(webdriver.By.xpath(xpathHeader));
+                            } catch (error) {
+                                ;
                             }
+                            if (head) {
+                                text = await head.getText();
+                                if (text === 'Cache') {
+                                    try {
+                                        if (bUpdate) {
+                                            button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Update"]')); // update cache
+                                            if (button) {
+                                                await button.click();
+                                                await this.waitLoadingFinished(600);
+                                                try { // info dialog popup may dispose alert
+                                                    await this._driver.wait(webdriver.until.alertIsPresent(), 1000);
+                                                    var alert = await this._driver.switchTo().alert();
+                                                    text = await alert.getText();
+                                                    if (text == 'Updated successfully!')
+                                                        await alert.accept();
+                                                    await this.waitLoadingFinished(10);
+                                                } catch (error) {
+                                                    ;
+                                                }
+                                                await sleep(1000);
+                                                bCheck = true;
+                                            }
+                                        } else {
+                                            button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Skip"]'));
+                                            if (button) {
+                                                await button.click();
+                                                await this.waitLoadingFinished(10);
+                                                await sleep(1000);
+                                                bCheck = true;
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.error(error);
+                                    }
+                                } else if (text === 'Info') {
+                                    try {
+                                        button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="OK"]')); // close changelog modal
+                                        if (button) {
+                                            await button.click();
+                                            await sleep(1000);
+                                            bCheck = true;
+                                        }
+                                    } catch (error) {
+                                        ;
+                                    }
+                                } else { // text === 'Welcome'
+                                    try {
+                                        button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Skip"]')); // close tutorial modal
+                                        if (button) {
+                                            await button.click();
+                                            await sleep(1000);
+                                            bCheck = true;
+                                        }
+                                    } catch (error) {
+                                        ;
+                                    }
+                                }
+                            } else
+                                throw new Error('Unexpected modal open');
                         }
                     }
                 }

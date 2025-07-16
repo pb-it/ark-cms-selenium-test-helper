@@ -126,13 +126,13 @@ module.exports = test;`;
         assert.ok(bExist);
 
         await ac.clearDatabase();
-
         await ac.restart(true);
         await app.reload();
         await TestHelper.delay(1000);
         await app.login();
         await TestHelper.delay(1000);
 
+        await ac.reloadModels(true);
         //TODO: verify new db
 
         await tools.restoreBackup(file);
