@@ -98,23 +98,9 @@ class ApiController {
             var res;
             try {
                 const data = {
-                    'cmd': `const path = require('path');
-const appRoot = controller.getAppRoot();
-const Logger = require(path.join(appRoot, './src/common/logger/logger.js'));
-
-async function test() {
-    var res;
-    var schema = ${schema};
-    if (!schema)
-        schema = controller.getDatabaseSettings()['connection']['database'];
-    Logger.info("Clearing database '" + schema + "'");
-    const knex = controller.getKnex();
-    var rs = await knex.raw("DROP DATABASE " + schema + ";");
-    rs = await knex.raw("CREATE DATABASE " + schema + ";");
-    return Promise.resolve('OK');
-};
-module.exports = test;`};
-
+                    'cmd': `module.exports = async function() {
+   return controller.getDatabaseController().clearSchema(${schema});
+};`};
                 const ac = app.getController().getApiController();
                 const client = ac.getApiClient();
                 res = await client.request('POST', '/sys/tools/dev/eval?_format=text', null, data);

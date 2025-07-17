@@ -1,6 +1,6 @@
 {
     "name": "@pb-it/ark-cms-selenium-test-helper",
-    "version": "0.1.27-beta",
+    "version": "0.1.28-beta",
     "description": "Helper for running selenium tests on ArkCMS",
     "main": "index.js",
     "scripts": {
@@ -35,5 +35,9 @@
     },
     "devDependencies": {
         "mocha": "^10.8.2"
+    },
+    "publishConfig": {
+        "access": "public",
+        "tag": "latest"
     }
 }
