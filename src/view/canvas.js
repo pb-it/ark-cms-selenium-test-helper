@@ -33,9 +33,9 @@ class Canvas {
     async getPanel(title) {
         var panel;
         if (title) {
-            var elements = await this._element.findElements(webdriver.By.xpath(`.//div[contains(@class, "panel")]/div/p[text()="${title}"]`)); // CrudPanel
+            var elements = await this._element.findElements(webdriver.By.xpath(`.//div[contains(@class, "panel")]/div/p[text()="${title}"]/../..`)); // CrudPanel
             if (!elements || elements.length !== 1)
-                elements = await this._element.findElements(webdriver.By.xpath(`.//div[contains(@class, "panel")]/div/div/p[text()="${title}"]`)); // MediaPanel
+                elements = await this._element.findElements(webdriver.By.xpath(`.//div[contains(@class, "panel")]/div/div/p[text()="${title}"]/../..`)); // MediaPanel
             if (elements && elements.length === 1)
                 panel = new Panel(this._helper, elements[0]);
         } else {

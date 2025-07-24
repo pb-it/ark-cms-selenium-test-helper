@@ -8,6 +8,8 @@ const webdriver = require('selenium-webdriver');
 
 const sleep = require('util').promisify(setTimeout);
 
+const Menu = require('../view/menu.js');
+
 class ExtensionController {
 
     _helper
@@ -41,10 +43,16 @@ class ExtensionController {
         const window = app.getWindow();
         const sidemenu = window.getSideMenu();
         await sidemenu.click('Extensions');
+        await app.waitLoadingFinished(10);
         await sleep(1000);
-        var menu = await sidemenu.getEntry(name);
-        var bExists = (menu != null);
-        await sidemenu.click('Add');
+
+        var canvas = await window.getCanvas();
+        assert.notEqual(canvas, null);
+        var panel = await canvas.getPanel(name);
+        var bExists = (panel != null);
+
+        const tnb = window.getTopNavigationBar();
+        await tnb.openAddEntry();
         await sleep(1000);
 
         var xpath = `//input[@type="file"]`;
@@ -80,10 +88,20 @@ class ExtensionController {
         const window = app.getWindow();
         const sidemenu = window.getSideMenu();
         await sidemenu.click('Extensions');
+        await app.waitLoadingFinished(10);
         await sleep(1000);
-        await sidemenu.click(name);
+
+        var canvas = await window.getCanvas();
+        assert.notEqual(canvas, null);
+        var panel = await canvas.getPanel(name);
+        assert.notEqual(panel, null);
+        var xpath = `.//div[contains(@class, 'menuitem') and contains(@class, 'root')]`;
+        var element = await panel.getElement().findElement(webdriver.By.xpath(xpath));
+        assert.notEqual(element, null);
+        var menu = new Menu(this._helper, element);
+        await menu.open();
         await sleep(1000);
-        await sidemenu.click('Delete');
+        await menu.click('Delete');
         await sleep(1000);
 
         await this._driver.wait(webdriver.until.alertIsPresent());

@@ -1,6 +1,6 @@
 {
     "name": "@pb-it/ark-cms-selenium-test-helper",
-    "version": "0.1.28-beta",
+    "version": "0.1.29-beta",
     "description": "Helper for running selenium tests on ArkCMS",
     "main": "index.js",
     "scripts": {
@@ -14,6 +14,7 @@
         "test:models": "mocha --bail tests/models.test.js",
         "test:content": "mocha --bail tests/content.test.js",
         "test:tools": "mocha --bail tests/tools.test.js",
+        "test:extensions": "mocha --bail tests/extensions.test.js",
         "test:proxy": "mocha --bail tests/proxy.test.js"
     },
     "repository": {
