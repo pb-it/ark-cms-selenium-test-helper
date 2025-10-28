@@ -1,6 +1,6 @@
 {
     "name": "@pb-it/ark-cms-selenium-test-helper",
-    "version": "0.1.29-beta",
+    "version": "0.1.30-beta",
     "description": "Helper for running selenium tests on ArkCMS",
     "main": "index.js",
     "scripts": {
@@ -31,7 +31,7 @@
     },
     "homepage": "https://github.com/pb-it/ark-cms-selenium-test-helper#readme",
     "dependencies": {
-        "selenium-webdriver": "^4.34.0",
+        "selenium-webdriver": "^4.38.0",
         "tree-kill": "^1.2.2"
     },
     "devDependencies": {

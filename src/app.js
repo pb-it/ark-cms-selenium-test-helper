@@ -215,26 +215,41 @@ class App {
         return Promise.resolve();
     }
 
+    /**
+     * 
+     * @param {*} timeout 
+     * @returns 
+     */
     async waitLoadingFinished(timeout = 10) {
-        try {
-            const overlay = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': '//div[@id="overlay"]' }), 1000);
-            var display = await overlay.getCssValue('display');
-            if (display == 'none') {
-                await sleep(100);
+        var display;
+        const start = Date.now();
+        do {
+            try {
+                var overlay = await this._driver.wait(webdriver.until.elementLocated({ 'xpath': '//div[@id="overlay"]' }), 1000);
                 display = await overlay.getCssValue('display');
+                if (display == 'none') {
+                    await sleep(100);
+                    display = await overlay.getCssValue('display');
+                }
+                var duration = (Date.now() - start) / 1000;
+                while (display == 'block' && duration < timeout) {
+                    await sleep(1000);
+                    display = await overlay.getCssValue('display');
+                    duration = (Date.now() - start) / 1000;
+                }
+            } catch (error) {
+                if (error['name'] !== 'StaleElementReferenceError') // Loading state(e.g. after login) will cause stale element error -> loop function
+                    throw error;
             }
-
-            var i = 0;
-            while (display == 'block' && i < timeout) {
-                await sleep(1000);
-                display = await overlay.getCssValue('display');
-                i++;
-            }
-            assert.equal(display, 'none');
-        } catch (error) {
-            ;
-        }
+        } while (display !== 'none' && ((Date.now() - start) / 1000) < timeout);
+        assert.equal(display, 'none');
         return Promise.resolve();
+    }
+
+    async isLoading() {
+        const overlay = await this._driver.findElement(webdriver.By.xpath('//div[@id="overlay"]'));
+        const display = await overlay.getCssValue('display');
+        return Promise.resolve(display == 'block');
     }
 
     async prepare(api, username, password, bCheck = true, bUpdate = true) {
@@ -286,6 +301,7 @@ class App {
                 }
                 if (text === 'Login') {
                     await this.login(username, password);
+                    await sleep(500);
                     await this.waitLoadingFinished(10);
                     await sleep(1000);
                 }
@@ -323,7 +339,7 @@ class App {
                                                 await this.waitLoadingFinished(600);
                                                 try { // info dialog popup may dispose alert
                                                     await this._driver.wait(webdriver.until.alertIsPresent(), 1000);
-                                                    var alert = await this._driver.switchTo().alert();
+                                                    alert = await this._driver.switchTo().alert();
                                                     text = await alert.getText();
                                                     if (text == 'Updated successfully!')
                                                         await alert.accept();
@@ -357,6 +373,28 @@ class App {
                                     } catch (error) {
                                         ;
                                     }
+                                } else if (text === 'Integrity check failed') {
+                                    try {
+                                        button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Delete Copy"]'));
+                                        if (button) {
+                                            await button.click();
+                                            //await this.waitLoadingFinished(10);
+                                            try {
+                                                await this._driver.wait(webdriver.until.alertIsPresent(), 1000);
+                                                alert = await this._driver.switchTo().alert();
+                                                text = await alert.getText();
+                                                if (text == 'Done')
+                                                    await alert.accept();
+                                                await this.waitLoadingFinished(10);
+                                            } catch (error) {
+                                                ;
+                                            }
+                                            await sleep(1000);
+                                            bCheck = true;
+                                        }
+                                    } catch (error) {
+                                        ;
+                                    }
                                 } else { // text === 'Welcome'
                                     try {
                                         button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Skip"]')); // close tutorial modal
@@ -369,11 +407,14 @@ class App {
                                         ;
                                     }
                                 }
-                            } else
-                                throw new Error('Unexpected modal open');
+                            }
                         }
                     }
-                }
+                } else
+                    throw new Error('Unexpected alert open');
+                modal = await window.getTopModal();
+                if (modal)
+                    throw new Error('Unexpected modal open');
             }
         }
         return Promise.resolve();

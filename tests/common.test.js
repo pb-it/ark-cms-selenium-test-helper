@@ -61,6 +61,8 @@ describe('Testsuit', function () {
         if (backup)
             await app.setApiUrl(backup);
         await app.reload();
+        await TestHelper.delay(500);
+        await app.waitLoadingFinished(10);
         await TestHelper.delay(1000);
         const window = app.getWindow();
         const modal = await window.getTopModal(); // close tutorial modal
@@ -75,7 +77,7 @@ describe('Testsuit', function () {
     it('#wait loading finished', async function () {
         this.timeout(10000);
 
-        response = await driver.executeAsyncScript(async () => {
+        var response = await driver.executeAsyncScript(async () => {
             const callback = arguments[arguments.length - 1];
 
             const controller = app.getController();
@@ -109,6 +111,48 @@ describe('Testsuit', function () {
         return Promise.resolve();
     });
 
+    it('#wait loading finished 2', async function () {
+        this.timeout(10000);
+
+        var response = await driver.executeAsyncScript(async () => {
+            const callback = arguments[arguments.length - 1];
+
+            const controller = app.getController();
+            controller.setLoadingState(true);
+            const timeout = setTimeout(function () {
+                clearTimeout(timeout);
+                controller.setLoadingState(false);
+                resolve();
+            }, 5000);
+
+            callback('OK');
+        });
+        assert.equal(response, 'OK');
+
+        const app = await helper.getApp();
+        var err;
+        const start = Date.now();
+        try {
+            await app.waitLoadingFinished(2);
+        } catch (error) {
+            err = error;
+        }
+        const duration = (Date.now() - start) / 1000;
+        //console.log(duration);
+        assert.ok(duration > 2 && duration < 3);
+        //console.log(err);
+        assert.notEqual(err, null);
+        assert.equal(err.code, 'ERR_ASSERTION');
+        assert.equal(err.message, "'block' == 'none'");
+
+        await app.waitLoadingFinished(3);
+
+        app.navigate('/');
+        await TestHelper.delay(1000);
+
+        return Promise.resolve();
+    });
+
     xit('#check downloads', async function () {
         this.timeout(10000);
 
@@ -129,7 +173,7 @@ describe('Testsuit', function () {
     });
 
     it('#set debug mode', async function () {
-        this.timeout(10000);
+        this.timeout(15000);
 
         const app = helper.getApp();
         assert.equal(await app.isDebugModeActive(), false);

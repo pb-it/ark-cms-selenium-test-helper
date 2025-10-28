@@ -120,7 +120,13 @@ describe('Testsuit - Content', function () {
         var button = await panel.getButton('Confirm');
         assert.notEqual(button, null);
         await button.click();
+        await driver.wait(webdriver.until.alertIsPresent(), 1000);
+        alert = await driver.switchTo().alert();
+        var text = await alert.getText();
+        assert.equal(text, 'Reload State?');
+        await alert.accept();
         await app.waitLoadingFinished(10);
+        await TestHelper.delay(1000);
 
         modal = await app.getWindow().getTopModal();
         assert.equal(modal, null);

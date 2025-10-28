@@ -58,6 +58,8 @@ describe('Testsuit', function () {
         assert.notEqual(modal, null);
 
         await app.login();
+        await TestHelper.delay(500);
+        await app.waitLoadingFinished(10);
         await TestHelper.delay(1000);
         modal = await window.getTopModal();
         if (modal) {
@@ -115,6 +117,26 @@ describe('Testsuit', function () {
         await TestHelper.delay(1000);
         await app.reload();
         await TestHelper.delay(1000);
+        assert.equal(await app.isLoggedIn(), true);
+
+        modal = await window.getTopModal();
+        assert.equal(modal, null);
+
+        return Promise.resolve();
+    });
+
+    xit('#prepare only', async function () {
+        this.timeout(30000);
+
+        const app = helper.getApp();
+        assert.equal(await app.isLoggedIn(), false);
+
+        const window = app.getWindow();
+        var modal = await window.getTopModal();
+        assert.notEqual(modal, null, 'Login modal not open');
+
+        await app.prepare(config['api'], config['username'], config['password'], true, true);
+        assert.equal(await app.isLoading(), false);
         assert.equal(await app.isLoggedIn(), true);
 
         modal = await window.getTopModal();

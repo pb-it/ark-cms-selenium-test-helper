@@ -54,6 +54,8 @@ describe('Testsuit', function () {
             await TestHelper.delay(1000);
 
             await app.login();
+            await TestHelper.delay(500);
+            await app.waitLoadingFinished(10);
             await TestHelper.delay(1000);
 
             const modal = await app.getWindow().getTopModal();
