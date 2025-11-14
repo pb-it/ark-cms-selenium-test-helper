@@ -302,7 +302,7 @@ class App {
                 if (text === 'Login') {
                     await this.login(username, password);
                     await sleep(500);
-                    await this.waitLoadingFinished(10);
+                    await this.waitLoadingFinished(30); // fetching cache information may take some time
                     await sleep(1000);
                 }
             }
@@ -336,16 +336,14 @@ class App {
                                             button = await modal.getElement().findElement(webdriver.By.xpath('.//button[text()="Update"]')); // update cache
                                             if (button) {
                                                 await button.click();
-                                                await this.waitLoadingFinished(600);
                                                 try { // info dialog popup may dispose alert
-                                                    await this._driver.wait(webdriver.until.alertIsPresent(), 1000);
+                                                    await this._driver.wait(webdriver.until.alertIsPresent(), 300000); // 5 min
                                                     alert = await this._driver.switchTo().alert();
                                                     text = await alert.getText();
                                                     if (text == 'Updated successfully!')
                                                         await alert.accept();
-                                                    await this.waitLoadingFinished(10);
                                                 } catch (error) {
-                                                    ;
+                                                    console.log(error);
                                                 }
                                                 await sleep(1000);
                                                 bCheck = true;

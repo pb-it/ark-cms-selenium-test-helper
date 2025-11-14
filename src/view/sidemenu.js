@@ -21,9 +21,9 @@ class SideMenu {
         var button;
         var xpath;
         if (this._breadcrumb.length == 0)
-            xpath = `//*[@id="sidenav"]/div[contains(@class, 'menu') and contains(@class, 'iconbar')]/div[contains(@class, 'menuitem') and @title="${title}"]`;
+            xpath = `//div[@id="sidenav"]/div[@id="sidemenu"]/div[contains(@class, 'menu') and contains(@class, 'iconbar')]/div[contains(@class, 'menuitem') and @title="${title}"]`;
         else
-            xpath = `//*[@id="sidepanel"]/div/div[contains(@class, 'menu')][${this._breadcrumb.length}]/div[contains(@class, 'menuitem') and starts-with(text(),"${title}")]`;
+            xpath = `//div[@id="sidepanel"]/div/div[contains(@class, 'menu')][${this._breadcrumb.length}]/div[contains(@class, 'menuitem') and starts-with(text(),"${title}")]`;
         const elements = await this._driver.findElements(webdriver.By.xpath(xpath));
         if (elements && elements.length > 0) {
             var text;

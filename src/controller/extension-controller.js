@@ -22,6 +22,9 @@ class ExtensionController {
 
     async addExtension(name, file, bRestartIfRequested) {
         assert(fs.existsSync(file), `File '${file}' not found`);
+        var index = name.indexOf('@');
+        if (index !== -1)
+            name = name.substring(0, index);
 
         //this._driver.setFileDetector(new remote.FileDetector());
 
@@ -64,6 +67,8 @@ class ExtensionController {
             if (bExists) {
                 await this._driver.wait(webdriver.until.alertIsPresent());
                 alert = await this._driver.switchTo().alert();
+                var text = await alert.getText();
+                assert.equal(text, 'An extension with name \'' + name + '\' already exists!\nDo you want to override it?');
                 await alert.accept();
             }
 
